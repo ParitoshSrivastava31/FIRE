@@ -1,15 +1,33 @@
-import React from "react";
-import { TrendingUp, TrendingDown, Sparkles, Activity, FileText } from "lucide-react";
+"use client";
+import React, { useMemo } from "react";
+import { TrendingUp, TrendingDown, Sparkles, FileText } from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+
 
 export default function DashboardPage() {
+  const now = new Date();
+  const formattedDate = now.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const hour = now.getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+
+  // Mini wealth chart data — last 12 months
+  const wealthData = useMemo(() => {
+    const months = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
+    let base = 7200000;
+    return months.map((m) => {
+      base = Math.round(base * (1 + (Math.random() * 0.03 + 0.005)));
+      return { month: m, netWorth: base };
+    });
+  }, []);
+
   return (
     <div className="space-y-8 animate-fadeUp pb-12">
       {/* Header Section */}
       <div className="flex flex-col gap-1">
         <h1 className="font-serif text-3xl md:text-[40px] leading-tight text-text-main">
-          Good morning, User.
+          {greeting}, User.
         </h1>
-        <p className="text-sm font-medium text-text-muted tracking-tight">October 24, 2024 • Market is Open</p>
+        <p className="text-sm font-medium text-text-muted tracking-tight">{formattedDate} • Market is Open</p>
       </div>
 
       {/* AI Insight Bar */}
@@ -46,20 +64,41 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-card border border-border rounded-[16px] p-6 shadow-sm flex flex-col h-[380px] hover:border-border-light transition-colors">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="font-semibold text-base">Wealth Projection</h2>
+            <div>
+              <h2 className="font-semibold text-base">Net Worth</h2>
+              <p className="text-[var(--text-muted)] text-xs mt-0.5">12-month progression</p>
+            </div>
             <div className="bg-background border border-border rounded-lg p-1 flex">
               <button className="px-3 py-1 text-xs font-bold rounded-md bg-card shadow-sm text-text-main">1Y</button>
               <button className="px-3 py-1 text-xs font-bold rounded-md text-text-muted hover:text-text-main transition-colors">5Y</button>
               <button className="px-3 py-1 text-xs font-bold rounded-md text-text-muted hover:text-text-main transition-colors">Max</button>
             </div>
           </div>
-          <div className="flex-1 rounded-xl border border-border/60 bg-background/50 flex items-center justify-center relative overflow-hidden group">
-             <div className="absolute inset-0 opacity-20 bg-[linear-gradient(rgba(0,0,0,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.05)_1px,transparent_1px)] bg-[size:30px_30px]"></div>
-             <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-emerald-dim to-transparent pointer-events-none"></div>
-             <div className="relative z-10 flex flex-col items-center">
-               <Activity className="w-8 h-8 text-text-muted opacity-40 mb-2" />
-               <span className="text-sm font-medium text-text-muted">Interactive Chart Area</span>
-             </div>
+          <div className="flex-1 min-h-0 min-w-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={wealthData} margin={{ top: 5, right: 10, left: 10, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="wealthGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--emerald)" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="var(--emerald)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                <XAxis dataKey="month" tick={{ fontSize: 10, fill: "var(--text-muted)" }} axisLine={false} tickLine={false} />
+                <YAxis
+                  tick={{ fontSize: 9, fill: "var(--text-muted)" }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v: number) => `₹${(v / 10000000).toFixed(2)}Cr`}
+                  width={60}
+                />
+                <Tooltip
+                  formatter={(v: unknown) => [`₹${((v as number) / 100000).toFixed(1)}L`, "Net Worth"]}
+                  contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "12px", fontSize: "11px" }}
+                />
+                <Area type="monotone" dataKey="netWorth" stroke="var(--emerald)" strokeWidth={2.5} fill="url(#wealthGrad)" dot={false} />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
         

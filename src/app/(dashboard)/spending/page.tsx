@@ -119,6 +119,7 @@ export default function SpendingPage() {
   const [showModal, setShowModal] = useState(false);
   const [showAudit, setShowAudit] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [auditContent, setAuditContent] = useState(AI_AUDIT);
 
   // New expense form state
   const [newExp, setNewExp] = useState({
@@ -148,12 +149,41 @@ export default function SpendingPage() {
     setShowModal(false);
   };
 
-  const handleGenAudit = () => {
+  const handleGenAudit = async () => {
     setIsGenerating(true);
-    setTimeout(() => {
+    setShowAudit(false);
+    // Build expenses object for the API
+    const expensesByCategory: Record<string, number> = {};
+    expenses.forEach((e) => {
+      expensesByCategory[e.category] = (expensesByCategory[e.category] || 0) + e.amount;
+    });
+
+    try {
+      const res = await fetch('/api/ai/audit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ expenses: expensesByCategory, income: monthlyIncome }),
+      });
+
       setIsGenerating(false);
       setShowAudit(true);
-    }, 1800);
+
+      if (!res.ok || !res.body) return;
+
+      // Stream the response into audit content state
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let auditText = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        auditText += decoder.decode(value, { stream: true });
+        setAuditContent(auditText);
+      }
+    } catch {
+      setIsGenerating(false);
+      setShowAudit(true);
+    }
   };
 
   return (
@@ -200,7 +230,7 @@ export default function SpendingPage() {
               </button>
             </div>
             <div className="text-sm text-[var(--text-sec)] leading-relaxed whitespace-pre-line">
-              {AI_AUDIT.split("\n").map((line, i) => {
+              {auditContent.split("\n").map((line, i) => {
                 if (line.startsWith("**") && line.endsWith("**")) {
                   return <p key={i} className="font-bold text-[var(--text-main)] mt-3 mb-1">{line.replace(/\*\*/g, "")}</p>;
                 }

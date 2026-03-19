@@ -136,27 +136,46 @@ export default function PlannerPage() {
 
   const projectionData = buildProjectionData(monthlyInvestment, projectionYears);
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     setIsGenerating(true);
     setThesisVisible(false);
     setDisplayedThesis("");
+    // Clear any previous stream timers
+    if (timerRef.current) clearTimeout(timerRef.current);
 
-    setTimeout(() => {
+    try {
+      const res = await fetch('/api/ai/thesis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ monthlyInvestment, projectionYears }),
+      });
+
+      if (!res.ok || !res.body) {
+        // Fallback to mock content if API fails
+        setIsGenerating(false);
+        setThesisVisible(true);
+        setDisplayedThesis(THESIS_CONTENT);
+        return;
+      }
+
       setIsGenerating(false);
       setThesisVisible(true);
 
-      // Streaming simulation
-      let i = 0;
-      const words = THESIS_CONTENT.split(" ");
-      const stream = () => {
-        if (i < words.length) {
-          setDisplayedThesis((prev) => prev + (i === 0 ? "" : " ") + words[i]);
-          i++;
-          timerRef.current = setTimeout(stream, 20);
-        }
-      };
-      stream();
-    }, 2200);
+      // Real streaming read
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        setDisplayedThesis((prev) => prev + chunk);
+      }
+    } catch {
+      // On network error, show mock content
+      setIsGenerating(false);
+      setThesisVisible(true);
+      setDisplayedThesis(THESIS_CONTENT);
+    }
   };
 
   const inputFields = [

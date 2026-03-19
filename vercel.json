@@ -1,0 +1,16 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/market-prices",
+      "schedule": "*/5 3-10 * * 1-5"
+    },
+    {
+      "path": "/api/cron/mf-nav",
+      "schedule": "0 15 * * 1-5"
+    },
+    {
+      "path": "/api/cron/real-estate",
+      "schedule": "0 18 * * 0"
+    }
+  ]
+}

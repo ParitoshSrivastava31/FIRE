@@ -2,22 +2,93 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #FAFAFB; /* Soft off-white for premium light feel */
+    --foreground: #171717;
+    
+    /* Off-white cards to stand out slightly against background */
+    --card: #FFFFFF;
+    --card-hover: #F4F4F5;
+    
+    /* Borders */
+    --border: #E4E4E7;
+    --border-light: #D4D4D8;
+    
+    /* Brand Colors (Adapted for light mode) */
+    --gold: #D97706; /* Warmer, slightly darker gold for white bg contrast */
+    --gold-dim: rgba(217, 119, 6, 0.15);
+    --gold-glow: rgba(217, 119, 6, 0.08);
+    
+    --emerald: #059669;
+    --emerald-dim: rgba(5, 150, 105, 0.1);
+    
+    --blue: #2563EB;
+    --blue-dim: rgba(37, 99, 235, 0.08);
+    
+    --red: #DC2626;
+    
+    /* Text Specific Variations */
+    --text-main: #18181B;
+    --text-sec: #52525B;
+    --text-muted: #A1A1AA;
+  }
+
+  /* Optional Dark Mode */
+  .dark {
+    --background: #080C14;
+    --foreground: #EEF2FF;
+    --card: #111722;
+    --card-hover: #161E2E;
+    --border: #1C2538;
+    --border-light: #243046;
+    --gold: #F0A500;
+    --gold-dim: #C8880020;
+    --gold-glow: #F0A50015;
+    --emerald: #00C97A;
+    --emerald-dim: #00C97A15;
+    --blue: #4F8EF7;
+    --blue-dim: #4F8EF710;
+    --red: #F05252;
+    --text-main: #EEF2FF;
+    --text-sec: #8B9BB8;
+    --text-muted: #4A5878;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  body {
+    @apply font-sans antialiased text-[var(--text-main)] bg-[var(--background)];
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+  
+  /* Noise Texture Overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 50; /* Needs to be above backgrounds but point-events none avoids blocking clicks */
+    opacity: 0.15; /* Subtle in light mode */
+  }
+
+  ::selection {
+    background: var(--gold);
+    color: #ffffff;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--background);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-light);
+    border-radius: 3px;
+  }
 }
 
 @layer utilities {

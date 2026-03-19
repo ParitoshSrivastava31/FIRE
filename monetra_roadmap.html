@@ -1,0 +1,1810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monetra — Product Roadmap v1.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080C14;
+  --bg2: #0E1420;
+  --bg3: #131A26;
+  --card: #111722;
+  --card-hover: #161E2E;
+  --border: #1C2538;
+  --border-light: #243046;
+  --gold: #F0A500;
+  --gold-dim: #C8880020;
+  --gold-glow: #F0A50015;
+  --emerald: #00C97A;
+  --emerald-dim: #00C97A15;
+  --blue: #4F8EF7;
+  --blue-dim: #4F8EF710;
+  --red: #F05252;
+  --text: #EEF2FF;
+  --text-sec: #8B9BB8;
+  --text-muted: #4A5878;
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.6;
+  overflow-x:hidden;
+}
+::selection{background:var(--gold);color:#000}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:3px}
+
+/* NOISE TEXTURE OVERLAY */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events:none;
+  z-index:0;
+  opacity:0.4;
+}
+
+/* HERO */
+.hero{
+  position:relative;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:80px 24px;
+  overflow:hidden;
+  z-index:1;
+}
+.hero-orb{
+  position:absolute;
+  border-radius:50%;
+  filter:blur(120px);
+  pointer-events:none;
+}
+.orb1{width:600px;height:600px;background:radial-gradient(circle,#F0A50012 0%,transparent 70%);top:-150px;left:-100px;animation:drift1 12s ease-in-out infinite}
+.orb2{width:500px;height:500px;background:radial-gradient(circle,#00C97A0D 0%,transparent 70%);bottom:-100px;right:-100px;animation:drift2 15s ease-in-out infinite}
+.orb3{width:400px;height:400px;background:radial-gradient(circle,#4F8EF708 0%,transparent 70%);top:40%;left:40%;animation:drift3 18s ease-in-out infinite}
+
+@keyframes drift1{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,40px)}}
+@keyframes drift2{0%,100%{transform:translate(0,0)}50%{transform:translate(-50px,-30px)}}
+@keyframes drift3{0%,100%{transform:translate(0,0)}33%{transform:translate(-40px,30px)}66%{transform:translate(40px,-20px)}}
+
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--gold-glow);
+  border:1px solid var(--gold-dim);
+  border-radius:100px;
+  padding:6px 16px;
+  font-size:12px;
+  font-weight:500;
+  color:var(--gold);
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  margin-bottom:32px;
+  animation:fadeUp 0.8s ease both;
+}
+.hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse 2s ease infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+
+.hero-title{
+  font-family:'DM Serif Display',serif;
+  font-size:clamp(52px,8vw,96px);
+  line-height:1;
+  text-align:center;
+  letter-spacing:-0.02em;
+  margin-bottom:8px;
+  animation:fadeUp 0.8s 0.1s ease both;
+}
+.hero-title-gold{
+  background:linear-gradient(135deg,#F0A500,#FFD366,#F0A500);
+  background-size:200% 100%;
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  animation:fadeUp 0.8s 0.1s ease both,shimmer 4s linear infinite;
+}
+@keyframes shimmer{0%{background-position:100% 0}100%{background-position:-100% 0}}
+
+.hero-tagline{
+  font-family:'DM Serif Display',serif;
+  font-size:clamp(16px,2.5vw,24px);
+  color:var(--text-sec);
+  text-align:center;
+  font-style:italic;
+  margin-bottom:48px;
+  animation:fadeUp 0.8s 0.2s ease both;
+}
+
+.hero-meta{
+  display:flex;flex-wrap:wrap;gap:24px;justify-content:center;
+  margin-bottom:64px;
+  animation:fadeUp 0.8s 0.3s ease both;
+}
+.hero-meta-item{
+  display:flex;align-items:center;gap:8px;
+  font-size:13px;color:var(--text-muted);
+}
+.hero-meta-item span{color:var(--text-sec);font-weight:500}
+
+.hero-stats{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:16px;max-width:760px;width:100%;
+  animation:fadeUp 0.8s 0.4s ease both;
+}
+.hero-stat{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  padding:20px;
+  text-align:center;
+  transition:border-color 0.3s,transform 0.3s;
+}
+.hero-stat:hover{border-color:var(--border-light);transform:translateY(-2px)}
+.hero-stat-num{
+  font-family:'JetBrains Mono',monospace;
+  font-size:28px;font-weight:500;
+  background:linear-gradient(135deg,var(--gold),#FFD366);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hero-stat-label{font-size:12px;color:var(--text-muted);margin-top:4px;letter-spacing:0.05em}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+
+/* NAVIGATION */
+.nav{
+  position:sticky;top:0;z-index:100;
+  background:var(--bg)cc;
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  padding:0 24px;
+}
+.nav-inner{
+  max-width:1200px;margin:0 auto;
+  display:flex;align-items:center;gap:4px;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.nav-inner::-webkit-scrollbar{display:none}
+.nav-logo{
+  font-family:'DM Serif Display',serif;
+  font-size:20px;
+  color:var(--gold);
+  padding:16px 20px 16px 0;
+  border-right:1px solid var(--border);
+  margin-right:8px;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.nav-tab{
+  background:none;border:none;cursor:pointer;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:13px;font-weight:500;
+  color:var(--text-muted);
+  padding:16px 16px;
+  white-space:nowrap;
+  border-bottom:2px solid transparent;
+  transition:all 0.2s;
+  flex-shrink:0;
+}
+.nav-tab:hover{color:var(--text-sec)}
+.nav-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+
+/* SECTIONS */
+.section{
+  max-width:1200px;margin:0 auto;padding:80px 24px;
+  display:none;
+}
+.section.active{display:block}
+
+.section-header{margin-bottom:56px;animation:fadeUp 0.6s ease both}
+.section-eyebrow{
+  font-size:11px;font-weight:600;
+  letter-spacing:0.15em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:12px;
+}
+.section-title{
+  font-family:'DM Serif Display',serif;
+  font-size:clamp(32px,5vw,52px);
+  line-height:1.1;
+  letter-spacing:-0.02em;
+}
+.section-subtitle{
+  font-size:17px;color:var(--text-sec);
+  margin-top:16px;max-width:580px;line-height:1.7;
+}
+
+/* CARDS */
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:28px;
+  transition:all 0.3s;
+  position:relative;
+  overflow:hidden;
+}
+.card::before{
+  content:'';position:absolute;
+  inset:0;border-radius:var(--radius);
+  background:radial-gradient(600px circle at var(--x,50%) var(--y,50%),#F0A50006,transparent 40%);
+  pointer-events:none;opacity:0;
+  transition:opacity 0.4s;
+}
+.card:hover::before{opacity:1}
+.card:hover{border-color:var(--border-light);transform:translateY(-2px)}
+
+.card-tag{
+  display:inline-block;
+  font-size:11px;font-weight:600;
+  letter-spacing:0.1em;text-transform:uppercase;
+  padding:4px 10px;border-radius:100px;
+  margin-bottom:14px;
+}
+.tag-gold{background:var(--gold-glow);color:var(--gold);border:1px solid var(--gold-dim)}
+.tag-emerald{background:var(--emerald-dim);color:var(--emerald);border:1px solid #00C97A20}
+.tag-blue{background:var(--blue-dim);color:var(--blue);border:1px solid #4F8EF720}
+.tag-red{background:#F0525210;color:var(--red);border:1px solid #F0525220}
+
+/* GRIDS */
+.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px}
+.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.grid-4{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+
+/* ============================
+   OVERVIEW SECTION
+   ============================ */
+.problem-highlight{
+  background:linear-gradient(135deg,#0E1420,#111722);
+  border:1px solid var(--border);
+  border-left:3px solid var(--gold);
+  border-radius:var(--radius);
+  padding:32px;
+  margin-bottom:32px;
+}
+.problem-highlight p{font-size:18px;line-height:1.7;color:var(--text-sec)}
+.problem-highlight strong{color:var(--text)}
+
+.value-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:24px;
+  transition:all 0.3s;
+}
+.value-card:hover{border-color:var(--border-light);transform:translateY(-2px)}
+.value-num{
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;color:var(--text-muted);
+  margin-bottom:12px;
+}
+.value-title{font-weight:700;font-size:15px;margin-bottom:8px}
+.value-desc{font-size:13px;color:var(--text-sec);line-height:1.6}
+.value-example{
+  margin-top:14px;padding:12px;
+  background:var(--bg3);
+  border-radius:8px;
+  font-size:12px;color:var(--emerald);
+  font-style:italic;line-height:1.5;
+  border-left:2px solid var(--emerald);
+}
+
+.segment-table{
+  width:100%;border-collapse:collapse;
+  font-size:14px;
+}
+.segment-table th{
+  text-align:left;padding:12px 16px;
+  font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--text-muted);border-bottom:1px solid var(--border);
+}
+.segment-table td{
+  padding:16px;
+  border-bottom:1px solid var(--border);
+  color:var(--text-sec);
+  vertical-align:top;
+}
+.segment-table tr:last-child td{border-bottom:none}
+.segment-table tr:hover td{background:var(--card-hover)}
+.segment-name{color:var(--text);font-weight:600}
+.income-badge{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  background:var(--gold-glow);
+  color:var(--gold);
+  padding:2px 8px;border-radius:4px;
+  white-space:nowrap;
+}
+
+/* TECH STACK */
+.stack-item{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 16px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  transition:all 0.2s;
+}
+.stack-item:hover{border-color:var(--border-light);background:var(--card)}
+.stack-icon{
+  width:36px;height:36px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+}
+.stack-info{min-width:0}
+.stack-name{font-weight:600;font-size:14px}
+.stack-purpose{font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ============================
+   PHASES SECTION
+   ============================ */
+.timeline{
+  position:relative;
+  padding-left:40px;
+}
+.timeline::before{
+  content:'';
+  position:absolute;left:14px;top:0;bottom:0;
+  width:1px;background:linear-gradient(to bottom,var(--gold),var(--emerald),var(--blue),var(--border));
+}
+.phase-block{
+  position:relative;
+  margin-bottom:40px;
+}
+.phase-dot{
+  position:absolute;
+  left:-34px;top:28px;
+  width:20px;height:20px;
+  border-radius:50%;
+  border:2px solid var(--border);
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.3s;
+}
+.phase-dot::after{
+  content:'';
+  width:8px;height:8px;border-radius:50%;
+  background:var(--text-muted);
+  transition:all 0.3s;
+}
+.phase-block.active .phase-dot{border-color:var(--gold)}
+.phase-block.active .phase-dot::after{background:var(--gold)}
+
+.phase-header{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:24px 28px;
+  cursor:pointer;
+  transition:all 0.3s;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+}
+.phase-header:hover{border-color:var(--border-light)}
+.phase-block.active .phase-header{border-color:var(--gold-dim)}
+
+.phase-meta{flex:1}
+.phase-label{
+  font-size:11px;font-weight:600;
+  letter-spacing:0.12em;text-transform:uppercase;
+  margin-bottom:8px;
+}
+.phase-name{
+  font-family:'DM Serif Display',serif;
+  font-size:22px;letter-spacing:-0.01em;
+}
+.phase-weeks{
+  font-size:12px;color:var(--text-muted);
+  margin-top:6px;
+}
+.phase-chevron{
+  color:var(--text-muted);
+  transition:transform 0.3s;
+  flex-shrink:0;
+}
+.phase-block.active .phase-chevron{transform:rotate(180deg)}
+
+.phase-body{
+  height:0;overflow:hidden;
+  transition:height 0.4s cubic-bezier(0.16,1,0.3,1);
+}
+.phase-body-inner{padding:24px 0 0}
+
+.milestone-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;
+}
+.milestone{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  padding:16px;
+  transition:all 0.2s;
+}
+.milestone:hover{border-color:var(--border-light);transform:translateY(-1px)}
+.milestone-week{
+  font-size:11px;font-weight:600;
+  color:var(--text-muted);letter-spacing:0.08em;text-transform:uppercase;
+  margin-bottom:8px;
+}
+.milestone-title{font-weight:600;font-size:14px;margin-bottom:6px}
+.milestone-desc{font-size:13px;color:var(--text-sec);line-height:1.5}
+
+.checklist{margin-top:24px}
+.checklist-title{
+  font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--text-muted);margin-bottom:12px;
+}
+.check-item{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:8px 0;
+  border-bottom:1px solid var(--border);
+  font-size:13px;color:var(--text-sec);
+}
+.check-item:last-child{border-bottom:none}
+.check-box{
+  width:16px;height:16px;border-radius:4px;
+  border:1px solid var(--border-light);
+  flex-shrink:0;margin-top:1px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all 0.2s;
+}
+.check-box.done{background:var(--emerald);border-color:var(--emerald)}
+.check-box.done::after{content:'✓';font-size:10px;color:#000;font-weight:700}
+
+/* ============================
+   DESIGN SYSTEM SECTION
+   ============================ */
+.color-swatch-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;
+}
+.color-swatch{
+  border-radius:var(--radius-sm);overflow:hidden;
+  border:1px solid var(--border);
+}
+.swatch-preview{height:80px;position:relative}
+.swatch-preview-inner{
+  position:absolute;inset:0;
+  display:flex;align-items:flex-end;padding:8px;
+}
+.swatch-info{padding:14px;background:var(--bg3)}
+.swatch-name{font-weight:600;font-size:13px;margin-bottom:2px}
+.swatch-hex{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-muted)}
+.swatch-usage{font-size:11px;color:var(--text-sec);margin-top:4px}
+
+.type-scale-item{
+  padding:20px 0;border-bottom:1px solid var(--border);
+  display:flex;align-items:baseline;gap:24px;
+}
+.type-scale-item:last-child{border-bottom:none}
+.type-meta{
+  flex-shrink:0;width:140px;
+  font-size:12px;
+}
+.type-meta-name{font-weight:600;color:var(--text-sec);margin-bottom:4px}
+.type-meta-specs{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-muted);line-height:1.6}
+.type-sample{flex:1;letter-spacing:-0.01em}
+
+.component-preview{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:32px;
+}
+
+/* Fake components for preview */
+.fake-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:10px 20px;border-radius:8px;
+  font-size:14px;font-weight:600;cursor:default;
+  transition:all 0.2s;
+}
+.btn-primary{background:var(--gold);color:#000}
+.btn-secondary{background:var(--card);color:var(--text);border:1px solid var(--border-light)}
+.btn-ghost{background:transparent;color:var(--text-sec);border:1px solid transparent}
+.btn-danger{background:#F0525215;color:var(--red);border:1px solid #F0525230}
+
+.fake-input{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:8px;padding:12px 16px;
+  font-size:14px;color:var(--text-sec);
+  width:100%;display:block;
+  transition:border-color 0.2s;
+}
+.fake-input.focused{border-color:var(--gold)}
+
+.ai-card{
+  background:var(--card);
+  border-left:3px solid var(--blue);
+  border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+  padding:16px 20px;
+  background:linear-gradient(135deg,var(--blue-dim),transparent);
+}
+.ai-badge{
+  font-size:10px;font-weight:700;letter-spacing:0.1em;
+  text-transform:uppercase;color:var(--blue);margin-bottom:8px;
+}
+.ai-text{font-size:13px;color:var(--text-sec);line-height:1.6}
+
+.stat-row{
+  display:flex;gap:4px;
+  font-family:'JetBrains Mono',monospace;font-size:15px;
+}
+.stat-pos{color:var(--emerald)}
+.stat-neg{color:var(--red)}
+
+/* ============================
+   MOCKUP SECTION
+   ============================ */
+.device-toggle{
+  display:flex;gap:4px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:10px;padding:4px;
+  width:fit-content;margin-bottom:40px;
+}
+.device-btn{
+  background:none;border:none;cursor:pointer;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:13px;font-weight:500;
+  color:var(--text-muted);
+  padding:8px 20px;border-radius:7px;
+  transition:all 0.2s;
+}
+.device-btn.active{background:var(--card);color:var(--text);border:1px solid var(--border)}
+
+/* DESKTOP MOCKUP */
+.desktop-frame{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:20px;
+  overflow:hidden;
+  box-shadow:0 40px 100px #00000060;
+}
+.desktop-bar{
+  background:var(--bg3);
+  border-bottom:1px solid var(--border);
+  padding:12px 16px;
+  display:flex;align-items:center;gap:8px;
+}
+.win-dot{width:12px;height:12px;border-radius:50%}
+.win-r{background:#F05252}
+.win-y{background:#F0A500}
+.win-g{background:#00C97A}
+.desktop-url{
+  flex:1;background:var(--bg);
+  border-radius:6px;padding:6px 14px;
+  font-size:12px;color:var(--text-muted);
+  margin-left:12px;max-width:360px;
+  font-family:'JetBrains Mono',monospace;
+}
+
+.desktop-app{display:flex;height:680px}
+.desktop-sidebar{
+  width:240px;flex-shrink:0;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  padding:20px 0;
+}
+.sidebar-logo{
+  padding:0 20px 20px;
+  font-family:'DM Serif Display',serif;
+  font-size:22px;color:var(--gold);
+  border-bottom:1px solid var(--border);
+  margin-bottom:16px;
+}
+.sidebar-section{
+  font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--text-muted);padding:12px 20px 6px;
+}
+.sidebar-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 20px;cursor:default;
+  font-size:13px;color:var(--text-sec);
+  transition:all 0.15s;border-radius:0;
+}
+.sidebar-item.active{
+  background:var(--gold-glow);color:var(--gold);
+  border-right:2px solid var(--gold);
+}
+.sidebar-item:hover:not(.active){background:var(--bg3);color:var(--text)}
+.sidebar-icon{font-size:15px;width:20px;text-align:center}
+
+.desktop-main{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.desktop-topbar{
+  padding:16px 24px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.topbar-title{font-size:18px;font-weight:700}
+.topbar-sub{font-size:12px;color:var(--text-muted);margin-top:2px}
+.topbar-actions{display:flex;gap:8px;align-items:center}
+.topbar-btn{
+  background:var(--gold);color:#000;
+  border:none;border-radius:8px;
+  padding:8px 14px;font-size:12px;font-weight:700;cursor:default;
+}
+.topbar-avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,var(--blue),var(--emerald));
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:#fff;
+}
+
+.desktop-content{flex:1;overflow:auto;padding:24px;background:var(--bg)}
+.dash-greeting{
+  font-family:'DM Serif Display',serif;
+  font-size:26px;margin-bottom:4px;
+}
+.dash-date{font-size:13px;color:var(--text-muted);margin-bottom:24px}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.kpi-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:16px;
+}
+.kpi-label{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px}
+.kpi-val{
+  font-family:'JetBrains Mono',monospace;
+  font-size:20px;font-weight:500;
+  margin-bottom:4px;
+}
+.kpi-change{font-size:11px;display:flex;align-items:center;gap:4px}
+.pos{color:var(--emerald)}
+.neg{color:var(--red)}
+
+.dash-row{display:grid;grid-template-columns:1fr 300px;gap:16px}
+.chart-placeholder{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:20px;height:200px;
+  position:relative;overflow:hidden;
+}
+.chart-title{font-size:13px;font-weight:600;margin-bottom:16px}
+.chart-lines{position:absolute;bottom:0;left:0;right:0;height:150px;padding:0 20px 20px}
+.chart-svg{width:100%;height:100%}
+
+.allocation-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:20px;
+}
+.alloc-title{font-size:13px;font-weight:600;margin-bottom:16px}
+.alloc-donut{
+  width:100px;height:100px;border-radius:50%;
+  background:conic-gradient(var(--blue) 0deg 130deg,var(--emerald) 130deg 220deg,var(--gold) 220deg 310deg,#8B5CF6 310deg 360deg);
+  margin:0 auto 16px;
+  position:relative;
+}
+.alloc-donut::after{
+  content:'';position:absolute;
+  inset:20px;background:var(--card);border-radius:50%;
+}
+.alloc-legend{display:flex;flex-direction:column;gap:8px}
+.alloc-item{display:flex;align-items:center;gap:8px;font-size:11px}
+.alloc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.alloc-name{flex:1;color:var(--text-sec)}
+.alloc-pct{font-family:'JetBrains Mono',monospace;color:var(--text)}
+
+.ai-insight-bar{
+  background:linear-gradient(135deg,var(--blue-dim),var(--emerald-dim));
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px 18px;
+  margin-top:16px;
+  display:flex;align-items:center;gap:12px;
+}
+.ai-icon{font-size:18px}
+.ai-insight-text{font-size:12px;color:var(--text-sec);line-height:1.5;flex:1}
+.ai-cta{
+  font-size:11px;font-weight:700;color:var(--blue);
+  white-space:nowrap;cursor:default;
+}
+
+/* MOBILE MOCKUP */
+.mobile-frame{
+  width:375px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:44px;
+  overflow:hidden;
+  box-shadow:0 40px 100px #00000060;
+  margin:0 auto;
+  position:relative;
+}
+.mobile-notch{
+  width:120px;height:34px;
+  background:var(--bg);
+  border-radius:0 0 20px 20px;
+  margin:0 auto 0;
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+  z-index:10;
+}
+.mobile-screen{
+  padding:54px 0 0;
+  height:780px;overflow:hidden;
+}
+.mobile-topbar{
+  padding:12px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.mobile-greeting{font-size:13px;color:var(--text-muted)}
+.mobile-name{font-size:18px;font-weight:700;margin-top:2px}
+.mobile-avatar{
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,var(--gold),var(--emerald));
+}
+.mobile-content{padding:0 16px;flex:1}
+.mobile-card-big{
+  background:linear-gradient(135deg,#0E1420,#131A26);
+  border:1px solid var(--border);
+  border-radius:20px;padding:20px;margin-bottom:16px;
+}
+.mobile-card-label{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px}
+.mobile-card-val{
+  font-family:'JetBrains Mono',monospace;
+  font-size:32px;font-weight:500;
+  margin-bottom:4px;
+}
+.mobile-card-change{font-size:12px;color:var(--emerald)}
+.mobile-sparkline{height:60px;margin-top:16px}
+.mobile-spark-svg{width:100%;height:100%}
+
+.mobile-quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.mobile-quick{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:14px;padding:14px;
+}
+.mobile-quick-icon{font-size:18px;margin-bottom:6px}
+.mobile-quick-label{font-size:10px;color:var(--text-muted);margin-bottom:4px}
+.mobile-quick-val{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:500}
+
+.mobile-section-title{font-size:14px;font-weight:700;margin-bottom:10px}
+.mobile-alert{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:12px;
+  display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;
+}
+.mobile-alert-dot{
+  width:8px;height:8px;border-radius:50%;
+  margin-top:4px;flex-shrink:0;
+}
+.mobile-alert-text{font-size:12px;color:var(--text-sec);line-height:1.5}
+
+.mobile-bottomnav{
+  position:absolute;bottom:0;left:0;right:0;
+  background:var(--bg2);border-top:1px solid var(--border);
+  display:flex;padding:12px 0 24px;
+}
+.mobile-nav-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;
+  font-size:10px;color:var(--text-muted);
+}
+.mobile-nav-item.active{color:var(--gold)}
+.mobile-nav-icon{font-size:18px}
+
+/* SPACING SYSTEM */
+.spacing-row{
+  display:flex;align-items:center;gap:16px;padding:12px 0;
+  border-bottom:1px solid var(--border);
+}
+.spacing-visual{
+  background:var(--gold);border-radius:3px;
+  height:20px;flex-shrink:0;
+}
+.spacing-label{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-muted);width:50px}
+.spacing-name{font-size:13px;color:var(--text-sec)}
+.spacing-usage{font-size:12px;color:var(--text-muted);margin-left:auto}
+
+/* SCROLL ANIMATIONS */
+.reveal{
+  opacity:0;transform:translateY(20px);
+  transition:opacity 0.6s ease,transform 0.6s ease;
+}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* TABS WITHIN SECTIONS */
+.inner-tabs{
+  display:flex;gap:4px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:32px;
+}
+.inner-tab{
+  background:none;border:none;cursor:pointer;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:13px;font-weight:500;
+  color:var(--text-muted);
+  padding:10px 16px;
+  border-bottom:2px solid transparent;
+  margin-bottom:-1px;
+  transition:all 0.2s;
+}
+.inner-tab.active{color:var(--text);border-bottom-color:var(--gold)}
+.inner-tab:hover:not(.active){color:var(--text-sec)}
+
+.inner-panel{display:none}
+.inner-panel.active{display:block}
+
+/* FOOTER */
+.footer{
+  border-top:1px solid var(--border);
+  padding:40px 24px;
+  text-align:center;
+  color:var(--text-muted);
+  font-size:13px;
+}
+.footer strong{color:var(--gold)}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .dash-row{grid-template-columns:1fr}
+  .grid-2{grid-template-columns:1fr}
+  .desktop-app{display:none}
+  .mobile-frame{width:100%}
+  .section{padding:48px 16px}
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-orb orb1"></div>
+  <div class="hero-orb orb2"></div>
+  <div class="hero-orb orb3"></div>
+
+  <div class="hero-badge">
+    <span class="hero-badge-dot"></span>
+    Confidential — Internal Document
+  </div>
+
+  <h1 class="hero-title">
+    <span class="hero-title-gold">Monetra</span>
+  </h1>
+  <p class="hero-tagline">Turn your lifestyle into a wealth strategy.</p>
+
+  <div class="hero-meta">
+    <div class="hero-meta-item">📄 <span>Product Roadmap v1.0</span></div>
+    <div class="hero-meta-item">⚡ <span>Next.js + Supabase</span></div>
+    <div class="hero-meta-item">🇮🇳 <span>India-First</span></div>
+    <div class="hero-meta-item">🤖 <span>Claude AI Powered</span></div>
+  </div>
+
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="hero-stat-num">500M+</div>
+      <div class="hero-stat-label">Working Adults in India</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">~3%</div>
+      <div class="hero-stat-label">Invest in Mutual Funds</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">26 wks</div>
+      <div class="hero-stat-label">To Full Product Launch</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">4</div>
+      <div class="hero-stat-label">Development Phases</div>
+    </div>
+  </div>
+</section>
+
+<!-- NAVIGATION -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-logo">M</div>
+    <button class="nav-tab active" onclick="showSection('overview',this)">Overview</button>
+    <button class="nav-tab" onclick="showSection('phases',this)">Phases</button>
+    <button class="nav-tab" onclick="showSection('design',this)">Design System</button>
+    <button class="nav-tab" onclick="showSection('mockups',this)">Mockups</button>
+    <button class="nav-tab" onclick="showSection('tech',this)">Tech Stack</button>
+  </div>
+</nav>
+
+<!-- ============================================================
+     OVERVIEW SECTION
+     ============================================================ -->
+<section class="section active" id="section-overview">
+
+  <div class="section-header">
+    <div class="section-eyebrow">Product Vision</div>
+    <h2 class="section-title">India's First Lifestyle-to-<br>Investment AI Planner</h2>
+    <p class="section-subtitle">Monetra bridges the gap between how Indians live and how they invest — powered by real-time AI intelligence.</p>
+  </div>
+
+  <div class="problem-highlight reveal">
+    <p><strong>The gap is not awareness — it's actionability.</strong> India has 500M+ working adults, yet only ~3% invest in mutual funds and less than 1% in equities. Existing tools either track expenses OR suggest investments, but none bridge the two with real-time AI intelligence tailored to India-specific instruments, regional real estate data, and behavioural nudges.</p>
+  </div>
+
+  <div style="margin-bottom:56px">
+    <h3 style="font-family:'DM Serif Display',serif;font-size:24px;margin-bottom:24px" class="reveal">Core Value Propositions</h3>
+    <div class="grid-3">
+      <div class="value-card reveal" style="border-color:var(--gold-dim)">
+        <div class="value-num">01</div>
+        <div class="value-title">Lifestyle-to-Investment Bridge</div>
+        <div class="value-desc">Connect spending habits directly to investment opportunities with AI-powered analysis.</div>
+        <div class="value-example">"You spend ₹16K eating out. Redirect ₹8K → this ELSS = ₹42L in 15 years"</div>
+      </div>
+      <div class="value-card reveal">
+        <div class="value-num">02</div>
+        <div class="value-title">India-Native by Design</div>
+        <div class="value-desc">Built for SIP, NPS, PPF, SGBs, NSE/BSE stocks, Gold ETF, and Indian real estate per-sqft data.</div>
+      </div>
+      <div class="value-card reveal">
+        <div class="value-num">03</div>
+        <div class="value-title">Real-Time AI Intelligence</div>
+        <div class="value-desc">Claude API for dynamic thesis generation — not static rule-based advice.</div>
+      </div>
+      <div class="value-card reveal">
+        <div class="value-num">04</div>
+        <div class="value-title">Behavioural Nudges</div>
+        <div class="value-desc">Gamified savings challenges tied to real investment milestones that drive action.</div>
+      </div>
+      <div class="value-card reveal" style="border-color:var(--emerald)30">
+        <div class="value-num">05</div>
+        <div class="value-title">Regional Real Estate</div>
+        <div class="value-desc">Tier-2/3 city data: price/sqft, rental yield, appreciation trends — no competitor has this.</div>
+      </div>
+      <div class="value-card reveal">
+        <div class="value-num">06</div>
+        <div class="value-title">Income Benchmarking</div>
+        <div class="value-desc">Peer comparison by city and income bracket — know where you stand and how to grow.</div>
+        <div class="value-example">"At 28 in Kanpur, your income should be ₹X — here's how to get there"</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="reveal" style="margin-bottom:56px">
+    <h3 style="font-family:'DM Serif Display',serif;font-size:24px;margin-bottom:24px">Target User Segments</h3>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="segment-table">
+        <thead>
+          <tr>
+            <th>Segment</th>
+            <th>Income Range</th>
+            <th>Core Need</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="segment-name">Salaried Professional</span></td>
+            <td><span class="income-badge">₹30K – ₹2L/mo</span></td>
+            <td>Wants to invest but doesn't know where to start. Primary segment.</td>
+          </tr>
+          <tr>
+            <td><span class="segment-name">Freelancer / Gig Worker</span></td>
+            <td><span class="income-badge">Variable</span></td>
+            <td>Irregular income — needs dynamic planning with variable surplus tracking.</td>
+          </tr>
+          <tr>
+            <td><span class="segment-name">Small Business Owner</span></td>
+            <td><span class="income-badge">₹1L+/mo</span></td>
+            <td>Separate personal and business finance; reinvest profits intelligently.</td>
+          </tr>
+          <tr>
+            <td><span class="segment-name">Student / Early Career</span></td>
+            <td><span class="income-badge">₹20K – ₹60K/mo</span></td>
+            <td>Building first investment habit. SIP-first approach, ages 22–27.</td>
+          </tr>
+          <tr>
+            <td><span class="segment-name">NRI / Returning Indian</span></td>
+            <td><span class="income-badge">USD / Multi</span></td>
+            <td>Invest in India — real estate + equity dual-track with currency management.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============================================================
+     PHASES SECTION
+     ============================================================ -->
+<section class="section" id="section-phases">
+
+  <div class="section-header">
+    <div class="section-eyebrow">Development Roadmap</div>
+    <h2 class="section-title">26 Weeks to Launch</h2>
+    <p class="section-subtitle">Four focused phases from foundation to full ecosystem — each building on the last with precision.</p>
+  </div>
+
+  <div class="timeline">
+
+    <!-- Phase 1 -->
+    <div class="phase-block active" id="phase1">
+      <div class="phase-dot"></div>
+      <div class="phase-header" onclick="togglePhase('phase1')">
+        <div class="phase-meta">
+          <div class="phase-label" style="color:var(--gold)">Phase 1</div>
+          <div class="phase-name">Foundation & Core Auth</div>
+          <div class="phase-weeks">Weeks 1 – 6</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <span class="card-tag tag-gold">In Progress</span>
+          <svg class="phase-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+      <div class="phase-body" id="phase1-body">
+        <div class="phase-body-inner">
+          <div class="milestone-grid">
+            <div class="milestone"><div class="milestone-week">Week 1–2</div><div class="milestone-title">Project Setup</div><div class="milestone-desc">Next.js 14 App Router, Supabase init, Tailwind + shadcn/ui, TypeScript strict mode, Sentry + PostHog.</div></div>
+            <div class="milestone"><div class="milestone-week">Week 2–3</div><div class="milestone-title">Authentication</div><div class="milestone-desc">Email/OTP/Google OAuth, middleware route protection, session refresh, RLS policies on all tables.</div></div>
+            <div class="milestone"><div class="milestone-week">Week 3–4</div><div class="milestone-title">4-Step Onboarding</div><div class="milestone-desc">Personal info → Income & expenses → Goals & risk profile → Investment preferences. Zustand state.</div></div>
+            <div class="milestone"><div class="milestone-week">Week 4–5</div><div class="milestone-title">Core Database Schema</div><div class="milestone-desc">Users, transactions, portfolio, goals, alerts tables with generated columns for P&L calculations.</div></div>
+            <div class="milestone"><div class="milestone-week">Week 5–6</div><div class="milestone-title">Basic Dashboard</div><div class="milestone-desc">Overview cards, manual expense entry, Recharts wealth projection, Vercel deployment + CI/CD.</div></div>
+          </div>
+          <div class="checklist">
+            <div class="checklist-title">Implementation Checklist</div>
+            <div class="check-item"><div class="check-box done"></div>Next.js 14 App Router with TypeScript strict mode</div>
+            <div class="check-item"><div class="check-box done"></div>Supabase project init — Auth, DB, Storage, Realtime</div>
+            <div class="check-item"><div class="check-box done"></div>RLS policies on ALL tables (user_id = auth.uid())</div>
+            <div class="check-item"><div class="check-box"></div>middleware.ts: session refresh + route protection</div>
+            <div class="check-item"><div class="check-box"></div>4-step onboarding wizard with progress stepper</div>
+            <div class="check-item"><div class="check-box"></div>Tailwind CSS + shadcn/ui init (dark mode)</div>
+            <div class="check-item"><div class="check-box"></div>Vercel deployment: preview branches per PR</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 2 -->
+    <div class="phase-block" id="phase2">
+      <div class="phase-dot"></div>
+      <div class="phase-header" onclick="togglePhase('phase2')">
+        <div class="phase-meta">
+          <div class="phase-label" style="color:var(--blue)">Phase 2</div>
+          <div class="phase-name">Core Intelligence Engine</div>
+          <div class="phase-weeks">Weeks 7 – 12</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <span class="card-tag tag-blue">Upcoming</span>
+          <svg class="phase-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+      <div class="phase-body" id="phase2-body">
+        <div class="phase-body-inner">
+          <div class="milestone-grid">
+            <div class="milestone"><div class="milestone-week">Week 7–8</div><div class="milestone-title">Claude AI Integration</div><div class="milestone-desc">Streaming investment thesis generation, spending audit API, word-by-word typewriter reveal UI.</div></div>
+            <div class="milestone"><div class="milestone-week">Week 8–9</div><div class="milestone-title">Market Data APIs</div><div class="milestone-desc">NSE/BSE real-time feeds, MF NAV via MFAPI, Alpha Vantage for stocks, Gold price integration.</div></div>
+            <div class="milestone"><div class="milestone-week">Week 9–10</div><div class="milestone-title">Portfolio Tracker</div><div class="milestone-desc">Holdings management, P&L calculations, Supabase Realtime for live value updates, day change alerts.</div></div>
+            <div class="milestone"><div class="milestone-week">Week 10–11</div><div class="milestone-title">Wealth Projector</div><div class="milestone-desc">Conservative/Moderate/Aggressive scenario modeling with D3.js wealth projection graphs.</div></div>
+            <div class="milestone"><div class="milestone-week">Week 11–12</div><div class="milestone-title">Goals & SIP Planner</div><div class="milestone-desc">Goal-based SIP calculator, Razorpay subscription billing, Pro tier activation flow.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 3 -->
+    <div class="phase-block" id="phase3">
+      <div class="phase-dot"></div>
+      <div class="phase-header" onclick="togglePhase('phase3')">
+        <div class="phase-meta">
+          <div class="phase-label" style="color:var(--emerald)">Phase 3</div>
+          <div class="phase-name">Advanced Features</div>
+          <div class="phase-weeks">Weeks 13 – 18</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <span class="card-tag tag-emerald">Planned</span>
+          <svg class="phase-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+      <div class="phase-body" id="phase3-body">
+        <div class="phase-body-inner">
+          <div class="milestone-grid">
+            <div class="milestone"><div class="milestone-week">Week 13–14</div><div class="milestone-title">Real Estate Module</div><div class="milestone-desc">PropEquity integration, price/sqft by locality, rental yield calculations, Tier-2/3 city data.</div></div>
+            <div class="milestone"><div class="milestone-week">Week 14–15</div><div class="milestone-title">Passive Income Engine</div><div class="milestone-desc">AI-generated income ideas by income tier, dividend tracker, FD/RD rate comparisons.</div></div>
+            <div class="milestone"><div class="milestone-week">Week 15–16</div><div class="milestone-title">Rebalancing Alerts</div><div class="milestone-desc">Vercel Cron jobs for portfolio drift alerts, FCM push notifications, Resend email digests.</div></div>
+            <div class="milestone"><div class="milestone-week">Week 16–17</div><div class="milestone-title">Bank SMS Parser</div><div class="milestone-desc">Auto-categorise expenses from pasted SMS. WhatsApp alerts via Twilio integration.</div></div>
+            <div class="milestone"><div class="milestone-week">Week 17–18</div><div class="milestone-title">Income Benchmarking</div><div class="milestone-desc">Peer comparison by city + income bracket. "At 28 in Kanpur, your income should be ₹X."</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 4 -->
+    <div class="phase-block" id="phase4">
+      <div class="phase-dot"></div>
+      <div class="phase-header" onclick="togglePhase('phase4')">
+        <div class="phase-meta">
+          <div class="phase-label" style="color:#A78BFA">Phase 4</div>
+          <div class="phase-name">Growth & Ecosystem</div>
+          <div class="phase-weeks">Weeks 19 – 26</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <span class="card-tag" style="background:#A78BFA10;color:#A78BFA;border:1px solid #A78BFA20">Vision</span>
+          <svg class="phase-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+      <div class="phase-body" id="phase4-body">
+        <div class="phase-body-inner">
+          <div class="milestone-grid">
+            <div class="milestone"><div class="milestone-week">Week 19–20</div><div class="milestone-title">Zerodha / Groww API</div><div class="milestone-desc">Auto-import portfolio holdings from Zerodha Kite and Groww — zero manual entry.</div></div>
+            <div class="milestone"><div class="milestone-week">Week 20–22</div><div class="milestone-title">Hindi Language Support</div><div class="milestone-desc">Full i18n with next-intl — Hindi UI, Hindi AI responses, regional language expansion roadmap.</div></div>
+            <div class="milestone"><div class="milestone-week">Week 22–24</div><div class="milestone-title">Mobile App (React Native)</div><div class="milestone-desc">Expo-based mobile app reusing the entire API layer. iOS + Android in one codebase.</div></div>
+            <div class="milestone"><div class="milestone-week">Week 24–26</div><div class="milestone-title">Social & Referral</div><div class="milestone-desc">Share goal milestones, referral system (1 month Pro per referral), financial literacy content hub.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================
+     DESIGN SYSTEM SECTION
+     ============================================================ -->
+<section class="section" id="section-design">
+
+  <div class="section-header">
+    <div class="section-eyebrow">Design Language</div>
+    <h2 class="section-title">Design System</h2>
+    <p class="section-subtitle">The visual foundation that makes Monetra feel premium, trustworthy, and unmistakably Indian.</p>
+  </div>
+
+  <div class="inner-tabs">
+    <button class="inner-tab active" onclick="showInnerTab('colors',this)">Colour Palette</button>
+    <button class="inner-tab" onclick="showInnerTab('typography',this)">Typography</button>
+    <button class="inner-tab" onclick="showInnerTab('components',this)">Components</button>
+    <button class="inner-tab" onclick="showInnerTab('spacing',this)">Spacing</button>
+    <button class="inner-tab" onclick="showInnerTab('motion',this)">Motion</button>
+  </div>
+
+  <!-- COLOURS -->
+  <div class="inner-panel active" id="inner-colors">
+    <div class="color-swatch-grid">
+      <div class="color-swatch">
+        <div class="swatch-preview" style="background:#F0A500">
+          <div class="swatch-preview-inner"><span style="font-size:11px;font-weight:700;color:#000;background:#00000020;padding:3px 8px;border-radius:4px">Primary</span></div>
+        </div>
+        <div class="swatch-info"><div class="swatch-name">Wealth Gold</div><div class="swatch-hex">#F0A500</div><div class="swatch-usage">CTAs, active states, links, primary actions</div></div>
+      </div>
+      <div class="color-swatch">
+        <div class="swatch-preview" style="background:#00C97A">
+          <div class="swatch-preview-inner"><span style="font-size:11px;font-weight:700;color:#000;background:#00000020;padding:3px 8px;border-radius:4px">Accent</span></div>
+        </div>
+        <div class="swatch-info"><div class="swatch-name">Growth Emerald</div><div class="swatch-hex">#00C97A</div><div class="swatch-usage">Positive P&L, goals achieved, SIP success</div></div>
+      </div>
+      <div class="color-swatch">
+        <div class="swatch-preview" style="background:#4F8EF7">
+          <div class="swatch-preview-inner"><span style="font-size:11px;font-weight:700;color:#000;background:#00000020;padding:3px 8px;border-radius:4px">Intelligence</span></div>
+        </div>
+        <div class="swatch-info"><div class="swatch-name">AI Blue</div><div class="swatch-hex">#4F8EF7</div><div class="swatch-usage">All AI-generated content, Claude insights, smart alerts</div></div>
+      </div>
+      <div class="color-swatch">
+        <div class="swatch-preview" style="background:#F05252">
+          <div class="swatch-preview-inner"><span style="font-size:11px;font-weight:700;color:#fff;background:#00000020;padding:3px 8px;border-radius:4px">Warning</span></div>
+        </div>
+        <div class="swatch-info"><div class="swatch-name">Alert Red</div><div class="swatch-hex">#F05252</div><div class="swatch-usage">Negative P&L, overspending, critical alerts, errors</div></div>
+      </div>
+      <div class="color-swatch">
+        <div class="swatch-preview" style="background:#080C14"></div>
+        <div class="swatch-info"><div class="swatch-name">Void Black</div><div class="swatch-hex">#080C14</div><div class="swatch-usage">Page background — creates premium depth</div></div>
+      </div>
+      <div class="color-swatch">
+        <div class="swatch-preview" style="background:#111722;border-bottom:1px solid #1C2538"></div>
+        <div class="swatch-info"><div class="swatch-name">Card Surface</div><div class="swatch-hex">#111722</div><div class="swatch-usage">All card backgrounds, elevated containers</div></div>
+      </div>
+      <div class="color-swatch">
+        <div class="swatch-preview" style="background:#EEF2FF"></div>
+        <div class="swatch-info"><div class="swatch-name">Ice White</div><div class="swatch-hex">#EEF2FF</div><div class="swatch-usage">Primary text — slightly warm, never harsh pure white</div></div>
+      </div>
+      <div class="color-swatch">
+        <div class="swatch-preview" style="background:#8B9BB8"></div>
+        <div class="swatch-info"><div class="swatch-name">Fog</div><div class="swatch-hex">#8B9BB8</div><div class="swatch-usage">Secondary text, labels, subheadings</div></div>
+      </div>
+    </div>
+    <div style="margin-top:32px;padding:24px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius)">
+      <p style="font-size:13px;color:var(--text-sec);line-height:1.7"><strong style="color:var(--text)">Philosophy:</strong> Monetra uses a deep dark palette with Gold as the primary accent — evoking wealth, India's relationship with gold, and premium financial services. Emerald signals growth and positive outcomes. The AI Blue creates a distinct visual lane for all Claude-generated content, helping users instantly identify what's machine-generated vs system-generated.</p>
+    </div>
+  </div>
+
+  <!-- TYPOGRAPHY -->
+  <div class="inner-panel" id="inner-typography">
+    <div style="margin-bottom:32px">
+      <div class="type-scale-item">
+        <div class="type-meta">
+          <div class="type-meta-name">Display</div>
+          <div class="type-meta-specs">DM Serif Display<br>96px / Italic avail.<br>−0.02em tracking</div>
+        </div>
+        <div class="type-sample" style="font-family:'DM Serif Display',serif;font-size:clamp(36px,5vw,56px);line-height:1">Monetra</div>
+      </div>
+      <div class="type-scale-item">
+        <div class="type-meta">
+          <div class="type-meta-name">H1 — Section</div>
+          <div class="type-meta-specs">DM Serif Display<br>36px / 700<br>−0.02em tracking</div>
+        </div>
+        <div class="type-sample" style="font-family:'DM Serif Display',serif;font-size:36px;line-height:1.1">Turn Your Lifestyle Into Wealth</div>
+      </div>
+      <div class="type-scale-item">
+        <div class="type-meta">
+          <div class="type-meta-name">H2 — Card Title</div>
+          <div class="type-meta-specs">Plus Jakarta Sans<br>22px / 700<br>−0.01em tracking</div>
+        </div>
+        <div class="type-sample" style="font-size:22px;font-weight:700;line-height:1.2">Your AI Investment Thesis</div>
+      </div>
+      <div class="type-scale-item">
+        <div class="type-meta">
+          <div class="type-meta-name">H3 — Label</div>
+          <div class="type-meta-specs">Plus Jakarta Sans<br>15px / 600</div>
+        </div>
+        <div class="type-sample" style="font-size:15px;font-weight:600">Portfolio Allocation</div>
+      </div>
+      <div class="type-scale-item">
+        <div class="type-meta">
+          <div class="type-meta-name">Body</div>
+          <div class="type-meta-specs">Plus Jakarta Sans<br>14px / 400<br>1.6 line-height</div>
+        </div>
+        <div class="type-sample" style="font-size:14px;color:var(--text-sec)">Monetra analyses your spending patterns and identifies investable surplus — money that could be working harder for you right now.</div>
+      </div>
+      <div class="type-scale-item">
+        <div class="type-meta">
+          <div class="type-meta-name">Financials</div>
+          <div class="type-meta-specs">JetBrains Mono<br>16–32px / 500<br>Tabular numerals</div>
+        </div>
+        <div class="type-sample">
+          <div class="stat-row">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:500">₹12,48,000</span>
+            <span class="stat-pos" style="font-family:'JetBrains Mono',monospace;font-size:14px;align-self:flex-end;padding-bottom:4px"> +₹1,24,000 (+11.03%)</span>
+          </div>
+        </div>
+      </div>
+      <div class="type-scale-item">
+        <div class="type-meta">
+          <div class="type-meta-name">Eyebrow</div>
+          <div class="type-meta-specs">Plus Jakarta Sans<br>11px / 700<br>0.15em tracking<br>UPPERCASE</div>
+        </div>
+        <div class="type-sample" style="font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold)">AI Investment Thesis</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPONENTS -->
+  <div class="inner-panel" id="inner-components">
+    <div class="grid-2" style="gap:24px">
+
+      <div>
+        <h4 style="font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px">Buttons</h4>
+        <div class="component-preview">
+          <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+            <button class="fake-btn btn-primary">Generate Thesis →</button>
+            <button class="fake-btn btn-secondary">View Portfolio</button>
+            <button class="fake-btn btn-ghost">Cancel</button>
+            <button class="fake-btn btn-danger">Remove</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h4 style="font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px">Form Inputs</h4>
+        <div class="component-preview">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div class="fake-input">₹ Monthly Income</div>
+            <div class="fake-input focused" style="border-color:var(--gold)">Kanpur, Uttar Pradesh</div>
+            <div class="fake-input" style="color:var(--text-muted)">Select Risk Profile...</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h4 style="font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px">AI Content Card</h4>
+        <div class="component-preview">
+          <div class="ai-card">
+            <div class="ai-badge">✦ Claude AI Analysis</div>
+            <div class="ai-text">Based on your ₹85,000/mo income and current ₹23,000 in dining expenses, redirecting 40% of your food budget toward a Nifty 50 index fund SIP would compound to approximately <strong style="color:var(--text)">₹2.1 Cr in 20 years</strong> at 12% CAGR.</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h4 style="font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px">Financial Numbers</h4>
+        <div class="component-preview">
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div>
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Portfolio Value</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:500">₹12,48,000</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--emerald)">↑ +₹1,24,000 (+11.03%) this month</div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Today's Change</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:500;color:var(--red)">−₹3,240 (−0.26%)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h4 style="font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px">Status Badges</h4>
+        <div class="component-preview">
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+            <span class="card-tag tag-gold">SIP Active</span>
+            <span class="card-tag tag-emerald">Goal Achieved</span>
+            <span class="card-tag tag-blue">AI Insight</span>
+            <span class="card-tag tag-red">Rebalance Needed</span>
+            <span style="display:inline-block;font-size:11px;font-weight:600;padding:4px 10px;border-radius:100px;background:var(--bg3);color:var(--text-sec);border:1px solid var(--border)">SEBI Disclaimer</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h4 style="font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px">Loading State</h4>
+        <div class="component-preview">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="height:16px;background:linear-gradient(90deg,var(--border),var(--border-light),var(--border));background-size:200% 100%;border-radius:4px;animation:shimmerLoad 1.5s ease infinite"></div>
+            <div style="height:16px;width:70%;background:linear-gradient(90deg,var(--border),var(--border-light),var(--border));background-size:200% 100%;border-radius:4px;animation:shimmerLoad 1.5s ease infinite 0.2s"></div>
+            <div style="height:16px;width:50%;background:linear-gradient(90deg,var(--border),var(--border-light),var(--border));background-size:200% 100%;border-radius:4px;animation:shimmerLoad 1.5s ease infinite 0.4s"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <style>
+    @keyframes shimmerLoad{0%{background-position:100% 0}100%{background-position:-100% 0}}
+    </style>
+  </div>
+
+  <!-- SPACING -->
+  <div class="inner-panel" id="inner-spacing">
+    <div style="max-width:600px">
+      <div class="spacing-row"><div class="spacing-label">4px</div><div class="spacing-visual" style="width:4px"></div><div class="spacing-name">xs — micro gap</div><div class="spacing-usage">icon-to-label, dot-to-text</div></div>
+      <div class="spacing-row"><div class="spacing-label">8px</div><div class="spacing-visual" style="width:8px"></div><div class="spacing-name">sm — compact</div><div class="spacing-usage">badge inner padding, tag gap</div></div>
+      <div class="spacing-row"><div class="spacing-label">12px</div><div class="spacing-visual" style="width:12px"></div><div class="spacing-name">md — element gap</div><div class="spacing-usage">between list items, KPI card rows</div></div>
+      <div class="spacing-row"><div class="spacing-label">16px</div><div class="spacing-visual" style="width:16px"></div><div class="spacing-name">lg — standard</div><div class="spacing-usage">card inner padding (mobile), grid gaps</div></div>
+      <div class="spacing-row"><div class="spacing-label">24px</div><div class="spacing-visual" style="width:24px"></div><div class="spacing-name">xl — card body</div><div class="spacing-usage">card inner padding (desktop), section gaps</div></div>
+      <div class="spacing-row"><div class="spacing-label">32px</div><div class="spacing-visual" style="width:32px"></div><div class="spacing-name">2xl — section gap</div><div class="spacing-usage">between card groups, feature sections</div></div>
+      <div class="spacing-row"><div class="spacing-label">48px</div><div class="spacing-visual" style="width:48px"></div><div class="spacing-name">3xl — layout</div><div class="spacing-usage">section padding top/bottom, hero spacing</div></div>
+      <div class="spacing-row"><div class="spacing-label">80px</div><div class="spacing-visual" style="width:80px"></div><div class="spacing-name">4xl — page</div><div class="spacing-usage">hero vertical padding, major section breaks</div></div>
+    </div>
+  </div>
+
+  <!-- MOTION -->
+  <div class="inner-panel" id="inner-motion">
+    <div class="grid-2" style="gap:24px">
+      <div class="card">
+        <div class="card-tag tag-gold">Entrance</div>
+        <h4 style="font-size:15px;font-weight:700;margin-bottom:8px">Fade Up</h4>
+        <p style="font-size:13px;color:var(--text-sec);margin-bottom:16px">Used for all content entering the viewport. Staggered by 100ms per element group.</p>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;padding:14px;background:var(--bg3);border-radius:8px;color:var(--text-sec)">
+          from: opacity:0 translateY(24px)<br>to: opacity:1 translateY(0)<br>duration: 600ms<br>easing: cubic-bezier(0.16,1,0.3,1)
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-tag tag-blue">Hover States</div>
+        <h4 style="font-size:15px;font-weight:700;margin-bottom:8px">Card Lift</h4>
+        <p style="font-size:13px;color:var(--text-sec);margin-bottom:16px">All interactive cards lift on hover with a border brightening for feedback.</p>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;padding:14px;background:var(--bg3);border-radius:8px;color:var(--text-sec)">
+          transform: translateY(-2px)<br>border-color: #243046<br>duration: 300ms<br>easing: ease
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-tag tag-emerald">Loading</div>
+        <h4 style="font-size:15px;font-weight:700;margin-bottom:8px">Skeleton Shimmer</h4>
+        <p style="font-size:13px;color:var(--text-sec);margin-bottom:16px">All data cards use skeleton loaders while fetching. Left-to-right shimmer sweep.</p>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;padding:14px;background:var(--bg3);border-radius:8px;color:var(--text-sec)">
+          background-position: 100% → -100%<br>duration: 1500ms<br>timing: linear infinite
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-tag tag-gold">AI Streaming</div>
+        <h4 style="font-size:15px;font-weight:700;margin-bottom:8px">Typewriter Reveal</h4>
+        <p style="font-size:13px;color:var(--text-sec);margin-bottom:16px">Claude's streaming responses appear word-by-word with a blinking cursor.</p>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;padding:14px;background:var(--bg3);border-radius:8px;color:var(--text-sec)">
+          word-by-word via Reader streams<br>cursor: blink 0.8s step-end infinite<br>fade-in per word: 150ms ease
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============================================================
+     MOCKUPS SECTION
+     ============================================================ -->
+<section class="section" id="section-mockups">
+
+  <div class="section-header">
+    <div class="section-eyebrow">Product Preview</div>
+    <h2 class="section-title">What Monetra Looks Like</h2>
+    <p class="section-subtitle">High-fidelity mockups of the core dashboard — desktop and mobile — showing the premium experience in context.</p>
+  </div>
+
+  <div class="device-toggle">
+    <button class="device-btn active" onclick="showDevice('desktop',this)">🖥 Desktop</button>
+    <button class="device-btn" onclick="showDevice('mobile',this)">📱 Mobile</button>
+  </div>
+
+  <!-- DESKTOP MOCKUP -->
+  <div id="device-desktop">
+    <div class="desktop-frame">
+      <div class="desktop-bar">
+        <div class="win-dot win-r"></div>
+        <div class="win-dot win-y"></div>
+        <div class="win-dot win-g"></div>
+        <div class="desktop-url">monetra.app/dashboard</div>
+      </div>
+      <div class="desktop-app">
+        <!-- SIDEBAR -->
+        <div class="desktop-sidebar">
+          <div class="sidebar-logo">Monetra</div>
+          <div class="sidebar-section">Overview</div>
+          <div class="sidebar-item active"><span class="sidebar-icon">⬡</span> Dashboard</div>
+          <div class="sidebar-item"><span class="sidebar-icon">📊</span> Portfolio</div>
+          <div class="sidebar-item"><span class="sidebar-icon">🎯</span> Goals</div>
+          <div class="sidebar-section">Intelligence</div>
+          <div class="sidebar-item"><span class="sidebar-icon">✦</span> AI Planner</div>
+          <div class="sidebar-item"><span class="sidebar-icon">🏡</span> Real Estate</div>
+          <div class="sidebar-item"><span class="sidebar-icon">💸</span> Passive Income</div>
+          <div class="sidebar-section">Manage</div>
+          <div class="sidebar-item"><span class="sidebar-icon">📋</span> Spending</div>
+          <div class="sidebar-item"><span class="sidebar-icon">🔔</span> Alerts</div>
+          <div class="sidebar-item"><span class="sidebar-icon">⚙</span> Settings</div>
+          <div style="flex:1"></div>
+          <div style="padding:16px 20px;border-top:1px solid var(--border)">
+            <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;letter-spacing:0.08em;text-transform:uppercase">Plan</div>
+            <div style="font-size:12px;font-weight:700;color:var(--gold)">✦ Pro Member</div>
+          </div>
+        </div>
+
+        <!-- MAIN -->
+        <div class="desktop-main">
+          <div class="desktop-topbar">
+            <div>
+              <div class="topbar-title">Dashboard</div>
+              <div class="topbar-sub">Wednesday, 18 March 2026</div>
+            </div>
+            <div class="topbar-actions">
+              <button class="topbar-btn">✦ Generate Thesis</button>
+              <div class="topbar-avatar">AK</div>
+            </div>
+          </div>
+
+          <div class="desktop-content">
+            <div class="dash-greeting">Good morning, Aryan 👋</div>
+            <div class="dash-date">Your portfolio is up <span style="color:var(--emerald);font-family:'JetBrains Mono',monospace">+2.4%</span> this month</div>
+
+            <!-- KPIs -->
+            <div class="kpi-grid">
+              <div class="kpi-card">
+                <div class="kpi-label">Net Worth</div>
+                <div class="kpi-val">₹18.2L</div>
+                <div class="kpi-change pos">↑ +₹1.2L this month</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Monthly Surplus</div>
+                <div class="kpi-val">₹32,400</div>
+                <div class="kpi-change" style="color:var(--gold)">✦ ₹12K investable</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">SIP This Month</div>
+                <div class="kpi-val">₹15,000</div>
+                <div class="kpi-change pos">↑ 3 active SIPs</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Goal Progress</div>
+                <div class="kpi-val">68%</div>
+                <div class="kpi-change pos">Home — ₹23L saved</div>
+              </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="dash-row">
+              <div class="chart-placeholder">
+                <div class="chart-title">Wealth Projection — 20 Year View</div>
+                <svg class="chart-svg" viewBox="0 0 500 130" preserveAspectRatio="none">
+                  <!-- Grid lines -->
+                  <line x1="0" y1="25" x2="500" y2="25" stroke="var(--border)" stroke-width="0.5"/>
+                  <line x1="0" y1="65" x2="500" y2="65" stroke="var(--border)" stroke-width="0.5"/>
+                  <line x1="0" y1="105" x2="500" y2="105" stroke="var(--border)" stroke-width="0.5"/>
+                  <!-- Aggressive -->
+                  <polyline fill="none" stroke="#F0A500" stroke-width="1.5" opacity="0.6"
+                    points="0,110 50,105 100,98 150,88 200,72 250,55 300,38 350,22 400,10 450,4 500,2"/>
+                  <!-- Moderate -->
+                  <polyline fill="none" stroke="#4F8EF7" stroke-width="2"
+                    points="0,110 50,107 100,102 150,94 200,83 250,69 300,54 350,40 400,28 450,18 500,12"/>
+                  <!-- Conservative -->
+                  <polyline fill="none" stroke="#00C97A" stroke-width="1.5" opacity="0.7"
+                    points="0,110 50,108 100,105 150,100 200,93 250,84 300,74 350,63 400,52 450,43 500,36"/>
+                  <!-- Area fill under moderate -->
+                  <path d="M0,110 50,107 100,102 150,94 200,83 250,69 300,54 350,40 400,28 450,18 500,12 500,130 0,130Z"
+                    fill="url(#chartGrad)" opacity="0.15"/>
+                  <defs>
+                    <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#4F8EF7"/>
+                      <stop offset="100%" stop-color="#4F8EF700"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <!-- Legend -->
+                <div style="position:absolute;top:20px;right:20px;display:flex;gap:12px">
+                  <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--gold)"><div style="width:16px;height:2px;background:var(--gold)"></div>Aggressive</div>
+                  <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--blue)"><div style="width:16px;height:2px;background:var(--blue)"></div>Moderate</div>
+                  <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--emerald)"><div style="width:16px;height:2px;background:var(--emerald)"></div>Conservative</div>
+                </div>
+              </div>
+
+              <div class="allocation-card">
+                <div class="alloc-title">Portfolio Allocation</div>
+                <div class="alloc-donut"></div>
+                <div class="alloc-legend">
+                  <div class="alloc-item"><div class="alloc-dot" style="background:var(--blue)"></div><div class="alloc-name">Equity / Stocks</div><div class="alloc-pct">36%</div></div>
+                  <div class="alloc-item"><div class="alloc-dot" style="background:var(--emerald)"></div><div class="alloc-name">Mutual Funds</div><div class="alloc-pct">25%</div></div>
+                  <div class="alloc-item"><div class="alloc-dot" style="background:var(--gold)"></div><div class="alloc-name">Gold / SGBs</div><div class="alloc-pct">25%</div></div>
+                  <div class="alloc-item"><div class="alloc-dot" style="background:#8B5CF6"></div><div class="alloc-name">Real Estate</div><div class="alloc-pct">14%</div></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- AI Insight Bar -->
+            <div class="ai-insight-bar">
+              <span class="ai-icon">✦</span>
+              <div class="ai-insight-text">
+                <strong style="color:var(--text)">AI Insight:</strong> Your dining spend of ₹18,400 last month is 22% above your peer group in Kanpur at your income level. Redirecting ₹8,000/mo to a Nifty 50 SIP generates ₹1.2 Cr in 15 years.
+              </div>
+              <span class="ai-cta">View Full Analysis →</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
+      <span class="card-tag tag-gold">1280px Desktop View</span>
+      <span style="font-size:12px;color:var(--text-muted);display:flex;align-items:center">Collapsible sidebar at 1024px · Stacked grid at 768px</span>
+    </div>
+  </div>
+
+  <!-- MOBILE MOCKUP -->
+  <div id="device-mobile" style="display:none">
+    <div style="position:relative">
+      <div class="mobile-frame">
+        <div class="mobile-notch"></div>
+        <div class="mobile-screen">
+          <!-- Topbar -->
+          <div class="mobile-topbar">
+            <div>
+              <div class="mobile-greeting">Good morning 👋</div>
+              <div class="mobile-name">Aryan Kapoor</div>
+            </div>
+            <div class="mobile-avatar"></div>
+          </div>
+
+          <!-- Content -->
+          <div class="mobile-content">
+            <!-- Net Worth Card -->
+            <div class="mobile-card-big">
+              <div class="mobile-card-label">Total Net Worth</div>
+              <div class="mobile-card-val">₹18,24,000</div>
+              <div class="mobile-card-change">↑ +₹1,20,000 this month (+7.0%)</div>
+              <div class="mobile-sparkline">
+                <svg class="mobile-spark-svg" viewBox="0 0 340 60" preserveAspectRatio="none">
+                  <path d="M0,50 40,45 80,40 120,35 160,25 200,18 240,12 280,8 340,4" fill="none" stroke="var(--gold)" stroke-width="2"/>
+                  <path d="M0,50 40,45 80,40 120,35 160,25 200,18 240,12 280,8 340,4 340,60 0,60Z" fill="var(--gold)" opacity="0.1"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="mobile-quick-grid">
+              <div class="mobile-quick">
+                <div class="mobile-quick-icon">📈</div>
+                <div class="mobile-quick-label">Monthly SIP</div>
+                <div class="mobile-quick-val">₹15,000</div>
+              </div>
+              <div class="mobile-quick">
+                <div class="mobile-quick-icon">💰</div>
+                <div class="mobile-quick-label">Surplus</div>
+                <div class="mobile-quick-val" style="color:var(--emerald)">₹32,400</div>
+              </div>
+              <div class="mobile-quick">
+                <div class="mobile-quick-icon">🎯</div>
+                <div class="mobile-quick-label">Goal</div>
+                <div class="mobile-quick-val">68%</div>
+              </div>
+              <div class="mobile-quick">
+                <div class="mobile-quick-icon">✦</div>
+                <div class="mobile-quick-label">AI Score</div>
+                <div class="mobile-quick-val" style="color:var(--gold)">782</div>
+              </div>
+            </div>
+
+            <!-- Alerts -->
+            <div class="mobile-section-title">Smart Alerts</div>
+            <div class="mobile-alert">
+              <div class="mobile-alert-dot" style="background:var(--gold)"></div>
+              <div class="mobile-alert-text"><strong style="color:var(--text)">Rebalance opportunity:</strong> Your Gold allocation is 3% above target. Consider shifting to equity.</div>
+            </div>
+            <div class="mobile-alert">
+              <div class="mobile-alert-dot" style="background:var(--blue)"></div>
+              <div class="mobile-alert-text"><strong style="color:var(--text)">AI Insight:</strong> ELSS tax-saving window closes in 18 days. ₹12,500 limit remaining.</div>
+            </div>
+            <div class="mobile-alert">
+              <div class="mobile-alert-dot" style="background:var(--emerald)"></div>
+              <div class="mobile-alert-text"><strong style="color:var(--text)">SIP processed:</strong> ₹5,000 → HDFC Nifty 50 Index Fund today.</div>
+            </div>
+          </div>
+
+          <!-- Bottom Nav -->
+          <div class="mobile-bottomnav">
+            <div class="mobile-nav-item active">
+              <span class="mobile-nav-icon">⬡</span>
+              Home
+            </div>
+            <div class="mobile-nav-item">
+              <span class="mobile-nav-icon">📊</span>
+              Portfolio
+            </div>
+            <div class="mobile-nav-item">
+              <span class="mobile-nav-icon">✦</span>
+              AI
+            </div>
+            <div class="mobile-nav-item">
+              <span class="mobile-nav-icon">🎯</span>
+              Goals
+            </div>
+            <div class="mobile-nav-item">
+              <span class="mobile-nav-icon">⚙</span>
+              More
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+      <span class="card-tag tag-blue">375px Mobile View</span>
+      <span style="font-size:12px;color:var(--text-muted);display:flex;align-items:center">Bottom navigation · Swipeable cards · Native-feel interactions</span>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============================================================
+     TECH STACK SECTION
+     ============================================================ -->
+<section class="section" id="section-tech">
+
+  <div class="section-header">
+    <div class="section-eyebrow">Architecture</div>
+    <h2 class="section-title">Tech Stack</h2>
+    <p class="section-subtitle">Production-grade, fully typed, India-optimised infrastructure built for scale from day one.</p>
+  </div>
+
+  <div style="margin-bottom:40px" class="reveal">
+    <h3 style="font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px">Frontend</h3>
+    <div class="grid-4">
+      <div class="stack-item"><div class="stack-icon" style="background:#00000030;border:1px solid var(--border)">▲</div><div class="stack-info"><div class="stack-name">Next.js 14+</div><div class="stack-purpose">App Router, SSR, RSC</div></div></div>
+      <div class="stack-item"><div class="stack-icon" style="background:#06B6D420;border:1px solid #06B6D430">🌊</div><div class="stack-info"><div class="stack-name">Tailwind CSS</div><div class="stack-purpose">Utility-first styling</div></div></div>
+      <div class="stack-item"><div class="stack-icon" style="background:#8B5CF620;border:1px solid #8B5CF630">🎨</div><div class="stack-info"><div class="stack-name">shadcn/ui</div><div class="stack-purpose">Accessible components</div></div></div>
+      <div class="stack-item"><div class="stack-icon" style="background:#F0A50020;border:1px solid var(--gold-dim)">📊</div><div class="stack-info"><div class="stack-name">Recharts + D3.js</div><div class="stack-purpose">Wealth projections</div></div></div>
+    </div>
+  </div>
+
+  <div style="margin-bottom:40px" class="reveal">
+    <h3 style="font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px">Backend & Database</h3>
+    <div class="grid-4">
+      <div class="stack-item"><div class="stack-icon" style="background:#3ECF8E20;border:1px solid #3ECF8E30">⚡</div><div class="stack-info"><div class="stack-name">Supabase</div><div class="stack-purpose">DB, Auth, Realtime, Storage</div></div></div>
+      <div class="stack-item"><div class="stack-icon" style="background:#336791  20;border:1px solid #33679130">🐘</div><div class="stack-info"><div class="stack-name">PostgreSQL</div><div class="stack-purpose">Row-level security + RLS</div></div></div>
+      <div class="stack-item"><div class="stack-icon" style="background:#F0A50020;border:1px solid var(--gold-dim)">🤖</div><div class="stack-info"><div class="stack-name">Claude API</div><div class="stack-purpose">AI thesis + streaming</div></div></div>
+      <div class="stack-item"><div class="stack-icon" style="background:#00C97A20;border:1px solid var(--emerald-dim)">💳</div><div class="stack-info"><div class="stack-name">Razorpay</div><div class="stack-purpose">INR subscription billing</div></div></div>
+    </div>
+  </div>
+
+  <div style="margin-bottom:40px" class="reveal">
+    <h3 style="font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px">Market Data & Integrations</h3>
+    <div class="grid-4">
+      <div class="stack-item"><div class="stack-icon" style="background:#4F8EF720;border:1px solid var(--blue-dim)">📈</div><div class="stack-info"><div class="stack-name">NSE/BSE APIs</div><div class="stack-purpose">Real-time stock data</div></div></div>
+      <div class="stack-item"><div class="stack-icon" style="background:#F0A50020;border:1px solid var(--gold-dim)">🏅</div><div class="stack-info"><div class="stack-name">Alpha Vantage</div><div class="stack-purpose">Extended market data</div></div></div>
+      <div class="stack-item"><div class="stack-icon" style="background:#00C97A20;border:1px solid var(--emerald-dim)">🏘</div><div class="stack-info"><div class="stack-name">PropEquity</div><div class="stack-purpose">Real estate per-sqft</div></div></div>
+      <div class="stack-item"><div class="stack-icon" style="background:#F0525220;border:1px solid #F0525230">🔔</div><div class="stack-info"><div class="stack-name">FCM + Twilio</div><div class="stack-purpose">Push + WhatsApp alerts</div></div></div>
+    </div>
+  </div>
+
+  <div class="reveal">
+    <h3 style="font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px">Infrastructure & Monitoring</h3>
+    <div class="grid-4">
+      <div class="stack-item"><div class="stack-icon" style="background:#00000030;border:1px solid var(--border)">▲</div><div class="stack-info"><div class="stack-name">Vercel</div><div class="stack-purpose">CI/CD, Edge, Cron</div></div></div>
+      <div class="stack-item"><div class="stack-icon" style="background:#F0525220;border:1px solid #F0525230">🛡</div><div class="stack-info"><div class="stack-name">Sentry</div><div class="stack-purpose">Error tracking</div></div></div>
+      <div class="stack-item"><div class="stack-icon" style="background:#F0A50020;border:1px solid var(--gold-dim)">📣</div><div class="stack-info"><div class="stack-name">PostHog</div><div class="stack-purpose">Analytics + funnels</div></div></div>
+      <div class="stack-item"><div class="stack-icon" style="background:#4F8EF720;border:1px solid var(--blue-dim)">✉</div><div class="stack-info"><div class="stack-name">Resend</div><div class="stack-purpose">Transactional email</div></div></div>
+    </div>
+  </div>
+
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <p><strong>Monetra</strong> — Product Roadmap v1.0 &nbsp;·&nbsp; Internal Development Document &nbsp;·&nbsp; Confidential</p>
+  <p style="margin-top:8px;font-size:11px;opacity:0.6">India's First Lifestyle-to-Investment AI Finance Planner &nbsp;·&nbsp; Next.js + Supabase + Claude AI &nbsp;·&nbsp; 2026</p>
+</footer>
+
+<script>
+// Tab navigation
+function showSection(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('section-' + id).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo({ top: document.querySelector('.nav').offsetTop, behavior: 'smooth' });
+  setTimeout(observeReveal, 100);
+}
+
+// Inner tabs
+function showInnerTab(id, btn) {
+  const section = btn.closest('.section');
+  section.querySelectorAll('.inner-panel').forEach(p => p.classList.remove('active'));
+  section.querySelectorAll('.inner-tab').forEach(t => t.classList.remove('active'));
+  section.querySelector('#inner-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// Phase toggle
+function togglePhase(id) {
+  const block = document.getElementById(id);
+  const body = document.getElementById(id + '-body');
+  const isActive = block.classList.contains('active');
+  
+  document.querySelectorAll('.phase-block').forEach(b => {
+    b.classList.remove('active');
+    const bodyEl = document.getElementById(b.id + '-body');
+    if (bodyEl) bodyEl.style.height = '0';
+  });
+  
+  if (!isActive) {
+    block.classList.add('active');
+    body.style.height = body.scrollHeight + 'px';
+    // Auto expand
+    const observer = new MutationObserver(() => {
+      body.style.height = 'auto';
+      observer.disconnect();
+    });
+    setTimeout(() => { body.style.height = 'auto'; }, 400);
+  }
+}
+
+// Device toggle
+function showDevice(device, btn) {
+  document.querySelectorAll('[id^="device-"]').forEach(d => d.style.display = 'none');
+  document.querySelectorAll('.device-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('device-' + device).style.display = 'block';
+  btn.classList.add('active');
+}
+
+// Card glow effect
+document.querySelectorAll('.card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const rect = card.getBoundingClientRect();
+    card.style.setProperty('--x', ((e.clientX - rect.left) / rect.width * 100) + '%');
+    card.style.setProperty('--y', ((e.clientY - rect.top) / rect.height * 100) + '%');
+  });
+});
+
+// Scroll reveal
+function observeReveal() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+      }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal:not(.visible)').forEach(el => observer.observe(el));
+}
+observeReveal();
+
+// Init phase 1 open
+setTimeout(() => {
+  const body = document.getElementById('phase1-body');
+  if (body) body.style.height = 'auto';
+}, 100);
+</script>
+</body>
+</html>

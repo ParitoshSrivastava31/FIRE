@@ -1,11 +1,22 @@
 import { NextResponse } from 'next/server'
 import { openai, AI_MODEL } from '@/lib/openai/client'
 import { createClient } from '@/lib/supabase/server'
+import { rateLimit } from '@/lib/rate-limit'
 
 export const maxDuration = 60
 
 export async function POST(req: Request) {
   try {
+    const ip = req.headers.get("x-forwarded-for") || "anonymous"
+    const { success, limit, remaining } = rateLimit(`ai_thesis_${ip}`, 3, 60000) // 3 requests per minute
+
+    if (!success) {
+      return NextResponse.json(
+        { error: "Too many AI generation requests. Please try again in a minute." },
+        { status: 429, headers: { "X-RateLimit-Limit": limit.toString(), "X-RateLimit-Remaining": remaining.toString() } }
+      )
+    }
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -101,8 +112,19 @@ Please provide:
         'Cache-Control': 'no-cache',
       },
     })
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : 'Unknown error'
-    return NextResponse.json({ error: msg }, { status: 500 })
+  } catch (error: any) {
+    console.error("AI Thesis Error:", error)
+    // Map OpenAI specific errors
+    let status = 500;
+    let msg = 'Failed to generate AI Thesis. Please try again.'
+    
+    if (error?.status === 429) {
+      status = 429;
+      msg = 'Model rate limit reached. Please try again later.'
+    } else if (error?.error?.type === 'server_error') {
+      status = 502;
+    }
+    
+    return NextResponse.json({ error: msg, details: error.message }, { status })
   }
 }

@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { createClient } from "@/lib/supabase/client";
 import {
   AreaChart,
   Area,
@@ -125,14 +127,70 @@ Based on your ₹46,000 monthly surplus, **Moderate** risk profile, and primary 
 
 // -------------------- Component --------------------
 export default function PlannerPage() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+  
   const [monthlyInvestment, setMonthlyInvestment] = useState(46000);
   const [projectionYears, setProjectionYears] = useState(20);
   const [showWithStepUp, setShowWithStepUp] = useState(false);
+  
   const [isGenerating, setIsGenerating] = useState(false);
   const [thesisVisible, setThesisVisible] = useState(false);
   const [displayedThesis, setDisplayedThesis] = useState("");
   const [isBookmarked, setIsBookmarked] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Fetch the latest generated thesis
+  const { data: latestThesis, isLoading } = useQuery({
+    queryKey: ['ai_theses', 'investment_plan'],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return null;
+      
+      const { data, error } = await supabase
+        .from('ai_theses')
+        .select('*')
+        .eq('thesis_type', 'investment_plan')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+        
+      if (error) {
+        if (error.code !== 'PGRST116') { // not found error
+          console.error("Error fetching latest thesis:", error);
+        }
+        return null; // fallback gracefully
+      }
+      return data;
+    }
+  });
+
+  // Seed state when latest thesis is loaded
+  useEffect(() => {
+    if (latestThesis && !isGenerating && !thesisVisible) {
+      setDisplayedThesis(latestThesis.thesis_content);
+      setIsBookmarked(latestThesis.is_bookmarked);
+      setThesisVisible(true);
+      
+      // Also sync the inputs if they were stored
+      if (latestThesis.input_snapshot) {
+        if (latestThesis.input_snapshot.monthlyInvestment) setMonthlyInvestment(latestThesis.input_snapshot.monthlyInvestment);
+        if (latestThesis.input_snapshot.projectionYears) setProjectionYears(latestThesis.input_snapshot.projectionYears);
+      }
+    }
+  }, [latestThesis, isGenerating, thesisVisible]);
+
+  const toggleBookmark = useMutation({
+    mutationFn: async (bookmarkState: boolean) => {
+      if (!latestThesis?.id) return bookmarkState; // Mock behaviour if no thesis saved
+      const { error } = await supabase.from('ai_theses').update({ is_bookmarked: bookmarkState }).eq('id', latestThesis.id);
+      if (error) throw error;
+      return bookmarkState;
+    },
+    onMutate: (newState) => {
+      setIsBookmarked(newState);
+    }
+  });
 
   const projectionData = buildProjectionData(monthlyInvestment, projectionYears);
 
@@ -170,6 +228,8 @@ export default function PlannerPage() {
         const chunk = decoder.decode(value, { stream: true });
         setDisplayedThesis((prev) => prev + chunk);
       }
+      // After streaming is done, invalidate the query so it fetches the newly saved thesis ID
+      queryClient.invalidateQueries({ queryKey: ['ai_theses', 'investment_plan'] });
     } catch {
       // On network error, show mock content
       setIsGenerating(false);
@@ -186,20 +246,54 @@ export default function PlannerPage() {
     { label: "City", value: "Bangalore 📍", badge: "" },
   ];
 
+  if (isLoading) {
+    return (
+      <div className="space-y-6 pb-10 animate-fadeUp">
+        <div className="space-y-2">
+          <div className="w-64 h-8 rounded-lg bg-[var(--surface-raised)] animate-pulse" />
+          <div className="w-80 h-4 rounded-md bg-[var(--surface)] animate-pulse" />
+        </div>
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <div className="xl:col-span-1 space-y-4">
+            <div className="glass-card p-5 h-[280px] space-y-4">
+               <div className="w-32 h-4 rounded-md bg-[var(--surface)] animate-pulse mb-6" />
+               {[1,2,3,4,5].map(i => <div key={i} className="w-full h-6 rounded-md bg-[var(--surface-raised)] animate-pulse" />)}
+            </div>
+            <div className="glass-card p-5 h-[180px] space-y-4">
+               <div className="w-40 h-4 rounded-md bg-[var(--surface)] animate-pulse mb-6" />
+               <div className="w-full h-8 rounded-md bg-[var(--surface-raised)] animate-pulse" />
+               <div className="w-full h-8 rounded-md bg-[var(--surface-raised)] animate-pulse" />
+            </div>
+          </div>
+          <div className="xl:col-span-2 space-y-5">
+            <div className="glass-card p-5 h-[340px]">
+               <div className="w-48 h-5 rounded-md bg-[var(--surface)] animate-pulse mb-6" />
+               <div className="w-full h-[240px] rounded-xl bg-[var(--surface-raised)]/50 animate-pulse" />
+            </div>
+            <div className="glass-card p-5 h-[300px]">
+               <div className="w-48 h-5 rounded-md bg-[var(--surface)] animate-pulse mb-6" />
+               <div className="w-full h-full rounded-xl bg-[var(--surface-raised)]/30 animate-pulse" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6 animate-fadeUp pb-10">
+    <div className="space-y-6 pb-10">
       {/* Header */}
       <div>
-        <h1 className="font-serif text-3xl text-[var(--text-main)]">AI Investment Planner</h1>
-        <p className="text-[var(--text-muted)] text-sm mt-1">Personalised wealth strategy powered by AI · India-native instruments</p>
+        <h1 className="font-serif text-2xl md:text-3xl text-[var(--text-main)]">AI Investment Planner</h1>
+        <p className="text-[13px] text-[var(--text-muted)] mt-1">Personalised wealth strategy powered by AI · India-native instruments</p>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Left Panel — Inputs */}
         <div className="xl:col-span-1 space-y-4">
           {/* Profile Summary */}
-          <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 space-y-3 hover:border-[var(--border-light)] transition-colors">
-            <h2 className="font-semibold text-sm text-[var(--text-main)]">Your Profile</h2>
+          <div className="glass-card p-5 space-y-3">
+            <h2 className="text-sm font-semibold text-[var(--text-main)]">Your Profile</h2>
             {inputFields.map((f) => (
               <div key={f.label} className="flex items-center justify-between py-2 border-b border-[var(--border)] last:border-0">
                 <span className="text-xs text-[var(--text-muted)]">{f.label}</span>
@@ -212,8 +306,8 @@ export default function PlannerPage() {
           </div>
 
           {/* Projection Controls */}
-          <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 space-y-4 hover:border-[var(--border-light)] transition-colors">
-            <h2 className="font-semibold text-sm text-[var(--text-main)]">Projection Settings</h2>
+          <div className="glass-card p-5 space-y-4">
+            <h2 className="text-sm font-semibold text-[var(--text-main)]">Projection Settings</h2>
             <div className="space-y-2">
               <div className="flex justify-between text-xs">
                 <span className="text-[var(--text-muted)]">Monthly Investment</span>
@@ -259,7 +353,7 @@ export default function PlannerPage() {
           <button
             onClick={handleGenerate}
             disabled={isGenerating}
-            className="w-full h-12 bg-[var(--gold)] text-white font-bold text-sm rounded-xl hover:opacity-90 hover:shadow-lg transition-all disabled:opacity-60 disabled:pointer-events-none flex items-center justify-center gap-2"
+            className="w-full btn-primary flex items-center justify-center gap-2 text-[13px] !py-3 disabled:opacity-60 disabled:pointer-events-none"
           >
             {isGenerating ? (
               <>
@@ -278,7 +372,7 @@ export default function PlannerPage() {
         {/* Right Panel — Thesis + Chart */}
         <div className="xl:col-span-2 space-y-5">
           {/* Wealth Projection Chart */}
-          <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 hover:border-[var(--border-light)] transition-colors">
+          <div className="glass-card p-5">
             <div className="flex items-center justify-between mb-5">
               <h2 className="font-semibold text-sm text-[var(--text-main)]">Wealth Projection</h2>
               <div className="flex items-center gap-3 text-[10px] font-bold">
@@ -332,7 +426,7 @@ export default function PlannerPage() {
           </div>
 
           {/* AI Thesis Output */}
-          <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl overflow-hidden hover:border-[var(--border-light)] transition-colors">
+          <div className="glass-card overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)] bg-gradient-to-r from-[var(--blue-dim)] to-transparent">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-full bg-[var(--card)] border border-[var(--border)] flex items-center justify-center">
@@ -347,7 +441,7 @@ export default function PlannerPage() {
                 {thesisVisible && (
                   <>
                     <button
-                      onClick={() => setIsBookmarked(!isBookmarked)}
+                      onClick={() => toggleBookmark.mutate(!isBookmarked)}
                       className={`p-1.5 rounded-lg transition-colors ${isBookmarked ? "text-[var(--gold)]" : "text-[var(--text-muted)] hover:text-[var(--text-main)]"}`}
                     >
                       <Bookmark size={15} fill={isBookmarked ? "currentColor" : "none"} />

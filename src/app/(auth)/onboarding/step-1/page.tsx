@@ -39,9 +39,51 @@ export default function OnboardingStep1() {
     setShowCityDropdown(false);
   };
 
-  const canProceed = form.fullName.trim() && form.dob && form.city && form.occupation;
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    
+    // Name validation
+    if (!form.fullName.trim()) {
+      newErrors.fullName = "Name is required";
+    } else if (form.fullName.length < 2 || !/^[a-zA-Z\s]*$/.test(form.fullName)) {
+      newErrors.fullName = "Please enter a valid name (letters only)";
+    }
+
+    // DOB validation (Age 18 - 80)
+    if (!form.dob) {
+      newErrors.dob = "Date of birth is required";
+    } else {
+      const birthDate = new Date(form.dob);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      if (age < 18) newErrors.dob = "You must be at least 18 years old to use Monetra.";
+      if (age > 100) newErrors.dob = "Please enter a valid date of birth.";
+    }
+
+    // City validation
+    if (!INDIAN_CITIES.includes(form.city) && form.city.length > 0) {
+      newErrors.city = "Please select a city from the dropdown.";
+    } else if (!form.city) {
+      newErrors.city = "City is required";
+    }
+
+    // Occupation
+    if (!form.occupation) {
+      newErrors.occupation = "Please select your occupation.";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleNext = () => {
+    if (!validateForm()) return;
     // Save to sessionStorage / Zustand store
     sessionStorage.setItem("onboarding_step1", JSON.stringify(form));
     router.push("/onboarding/step-2");
@@ -66,10 +108,14 @@ export default function OnboardingStep1() {
           <input
             type="text"
             placeholder="Priya Sharma"
-            className="w-full h-12 px-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/20 transition-all"
+            className={`w-full h-12 px-4 rounded-xl border bg-[var(--card)] text-sm text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/20 transition-all ${errors.fullName ? 'border-[var(--red)]' : 'border-[var(--border)]'}`}
             value={form.fullName}
-            onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+            onChange={(e) => {
+              setForm({ ...form, fullName: e.target.value });
+              if (errors.fullName) setErrors({ ...errors, fullName: "" });
+            }}
           />
+          {errors.fullName && <p className="text-xs text-[var(--red)]">{errors.fullName}</p>}
         </div>
 
         {/* Date of Birth */}
@@ -78,10 +124,14 @@ export default function OnboardingStep1() {
           <p className="text-xs text-[var(--text-muted)]">Used for age-based financial benchmarking</p>
           <input
             type="date"
-            className="w-full h-12 px-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--text-main)] focus:outline-none focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/20 transition-all"
+            className={`w-full h-12 px-4 rounded-xl border bg-[var(--card)] text-sm text-[var(--text-main)] focus:outline-none focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/20 transition-all ${errors.dob ? 'border-[var(--red)]' : 'border-[var(--border)]'}`}
             value={form.dob}
-            onChange={(e) => setForm({ ...form, dob: e.target.value })}
+            onChange={(e) => {
+              setForm({ ...form, dob: e.target.value });
+              if (errors.dob) setErrors({ ...errors, dob: "" });
+            }}
           />
+          {errors.dob && <p className="text-xs text-[var(--red)]">{errors.dob}</p>}
         </div>
 
         {/* City */}
@@ -91,16 +141,18 @@ export default function OnboardingStep1() {
           <input
             type="text"
             placeholder="Search your city..."
-            className="w-full h-12 px-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/20 transition-all"
+            className={`w-full h-12 px-4 rounded-xl border bg-[var(--card)] text-sm text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/20 transition-all ${errors.city ? 'border-[var(--red)]' : 'border-[var(--border)]'}`}
             value={citySearch}
             onChange={(e) => {
               setCitySearch(e.target.value);
               setForm({ ...form, city: "" });
               setShowCityDropdown(true);
+              if (errors.city) setErrors({ ...errors, city: "" });
             }}
             onFocus={() => setShowCityDropdown(true)}
             onBlur={() => setTimeout(() => setShowCityDropdown(false), 150)}
           />
+          {errors.city && <p className="text-xs text-[var(--red)]">{errors.city}</p>}
           {showCityDropdown && citySearch && filteredCities.length > 0 && (
             <div className="absolute top-full left-0 right-0 mt-1 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl z-50 max-h-48 overflow-y-auto">
               {filteredCities.slice(0, 8).map((city) => (
@@ -124,7 +176,10 @@ export default function OnboardingStep1() {
             {OCCUPATIONS.map((occ) => (
               <button
                 key={occ.id}
-                onClick={() => setForm({ ...form, occupation: occ.id })}
+                onClick={() => {
+                  setForm({ ...form, occupation: occ.id });
+                  if (errors.occupation) setErrors({ ...errors, occupation: "" });
+                }}
                 className={`flex flex-col items-start gap-1.5 p-4 rounded-xl border text-left transition-all ${
                   form.occupation === occ.id
                     ? "border-[var(--gold)] bg-[var(--gold-glow)] shadow-sm"
@@ -137,13 +192,13 @@ export default function OnboardingStep1() {
               </button>
             ))}
           </div>
+          {errors.occupation && <p className="text-xs text-[var(--red)]">{errors.occupation}</p>}
         </div>
       </div>
 
       <button
         onClick={handleNext}
-        disabled={!canProceed}
-        className="w-full h-12 bg-[var(--gold)] text-white font-bold text-sm rounded-xl hover:opacity-90 hover:shadow-lg hover:-translate-y-[1px] transition-all disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center gap-2"
+        className="w-full h-12 bg-[var(--gold)] text-white font-bold text-sm rounded-xl hover:opacity-90 hover:shadow-lg hover:-translate-y-[1px] transition-all flex items-center justify-center gap-2"
       >
         Continue to Income & Expenses
         <ArrowRight size={15} />

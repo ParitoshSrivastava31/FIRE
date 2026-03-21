@@ -24,8 +24,24 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Monetra - Premium AI Finance Planner",
-  description: "Turn your lifestyle into a wealth strategy with amazing design.",
+  title: "Monetra | India's First Lifestyle-to-Investment AI Finance Planner",
+  description: "Turn your lifestyle into a wealth strategy. Monetra uses AI to audit your spending and build a personalised, real-time investment portfolio tailored to the Indian market.",
+  keywords: ["AI Finance Planner", "Personal Finance India", "SIP Recommendations", "Expense Tracker AI", "Mutual Funds India", "Real Estate India"],
+  authors: [{ name: "Monetra Team" }],
+  creator: "Monetra HQ",
+  openGraph: {
+    type: "website",
+    locale: "en_IN",
+    url: "https://monetra.in",
+    title: "Monetra | AI Finance Planner",
+    description: "The intelligent way to track spending and invest surplus for Indian professionals.",
+    siteName: "Monetra",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Monetra | AI Finance Planner",
+    description: "Turn your lifestyle into a wealth strategy. Get AI-powered SIP and real estate recommendations.",
+  },
 };
 
 export default function RootLayout({

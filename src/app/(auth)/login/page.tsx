@@ -49,7 +49,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex bg-[var(--background)]">
       {/* Left Panel — Brand Visual */}
-      <div className="hidden lg:flex w-[45%] bg-[var(--card)] border-r border-[var(--border)] flex-col justify-between p-12 relative overflow-hidden">
+      <div className="hidden lg:flex w-[45%] glass-panel border-r border-[var(--border)] flex-col justify-between p-12 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-20 left-10 w-64 h-64 bg-[var(--gold-dim)] rounded-full blur-3xl opacity-60" />
           <div className="absolute bottom-20 right-10 w-48 h-48 bg-[var(--blue-dim)] rounded-full blur-3xl opacity-40" />
@@ -70,7 +70,7 @@ export default function LoginPage() {
           <div className="space-y-4">
             {HIGHLIGHTS.map((h, i) => (
               <div key={i} className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-[var(--gold-dim)] flex items-center justify-center text-[var(--gold)]">
+                <div className="w-8 h-8 rounded-xl bg-[var(--gold-dim)] flex items-center justify-center text-[var(--gold)]">
                   {h.icon}
                 </div>
                 <span className="text-sm font-medium text-[var(--text-sec)]">{h.text}</span>
@@ -80,8 +80,8 @@ export default function LoginPage() {
         </div>
 
         {/* Decorative mini dashboard preview */}
-        <div className="relative z-10 bg-[var(--background)] border border-[var(--border)] rounded-2xl p-5 space-y-3">
-          <p className="text-[10px] font-bold tracking-widest uppercase text-[var(--text-muted)]">Your Wealth Snapshot</p>
+        <div className="relative z-10 glass-card p-5 space-y-3">
+          <p className="section-label">Your Wealth Snapshot</p>
           {[
             { label: "Net Worth", val: "₹1.24Cr", color: "text-[var(--emerald)]" },
             { label: "Monthly Surplus", val: "₹46,000", color: "text-[var(--blue)]" },
@@ -116,20 +116,20 @@ export default function LoginPage() {
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-sm font-semibold text-[var(--text-main)]" htmlFor="email">Email</label>
+              <label className="section-label" htmlFor="email">Email</label>
               <input
                 id="email"
                 type="email"
                 placeholder="you@example.com"
                 required
-                className="w-full h-12 px-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/20 transition-all"
+                className="input-premium !py-3.5"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-semibold text-[var(--text-main)]" htmlFor="password">Password</label>
+                <label className="section-label" htmlFor="password">Password</label>
                 <button type="button" className="text-xs text-[var(--gold)] hover:underline font-medium">Forgot password?</button>
               </div>
               <div className="relative">
@@ -137,7 +137,7 @@ export default function LoginPage() {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   required
-                  className="w-full h-12 px-4 pr-12 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/20 transition-all"
+                  className="input-premium !py-3.5 !pr-12"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -153,7 +153,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full h-12 bg-[var(--gold)] text-white font-bold text-sm rounded-xl hover:opacity-90 hover:shadow-lg hover:-translate-y-[1px] transition-all disabled:opacity-60 disabled:pointer-events-none flex items-center justify-center gap-2"
+              className="w-full btn-primary !py-3.5 flex items-center justify-center gap-2 text-[13px] disabled:opacity-60 disabled:pointer-events-none"
             >
               {isLoading ? (
                 <>
@@ -181,7 +181,7 @@ export default function LoginPage() {
           <button
             onClick={handleGoogleLogin}
             type="button"
-            className="w-full h-12 border border-[var(--border)] bg-[var(--card)] text-[var(--text-main)] font-semibold text-sm rounded-xl hover:border-[var(--border-light)] hover:shadow-sm transition-all flex items-center justify-center gap-2.5"
+            className="w-full btn-ghost !py-3.5 flex items-center justify-center gap-2.5 text-[13px]"
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
               <path d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>

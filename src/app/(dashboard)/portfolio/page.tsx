@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { createClient } from "@/lib/supabase/client";
 import {
   PieChart,
   Pie,
@@ -63,16 +65,50 @@ function formatINR(v: number) {
 }
 
 export default function PortfolioPage() {
+  const supabase = createClient();
   const [filter, setFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"pnl" | "name" | "value">("value");
 
+  // DB Fetching
+  const { data: dbHoldings, isLoading } = useQuery({
+    queryKey: ['portfolio_holdings'],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return HOLDINGS;
+      
+      const { data, error } = await supabase
+        .from('portfolio_holdings')
+        .select('*');
+        
+      if (error) {
+        console.error("Supabase error (falling back to mock):", error);
+        return HOLDINGS;
+      }
+      
+      if (!data || data.length === 0) return [];
+      
+      return data.map((d: any) => ({
+        id: d.id,
+        name: d.name,
+        type: d.asset_type as Holding['type'],
+        symbol: d.symbol,
+        quantity: Number(d.quantity),
+        avgBuyPrice: Number(d.avg_buy_price),
+        currentPrice: Number(d.current_price),
+        prevClose: Number(d.previous_close),
+      }));
+    }
+  });
+
+  const holdings = dbHoldings || HOLDINGS;
+
   // Compute derived values
-  const enriched = HOLDINGS.map((h) => {
+  const enriched = holdings.map((h) => {
     const currentValue = h.currentPrice * h.quantity;
     const investedAmount = h.avgBuyPrice * h.quantity;
     const pnl = currentValue - investedAmount;
-    const pnlPct = ((pnl / investedAmount) * 100);
-    const dayChange = ((h.currentPrice - h.prevClose) / h.prevClose) * 100;
+    const pnlPct = investedAmount > 0 ? ((pnl / investedAmount) * 100) : 0;
+    const dayChange = h.prevClose > 0 ? ((h.currentPrice - h.prevClose) / h.prevClose) * 100 : 0;
     return { ...h, currentValue, investedAmount, pnl, pnlPct, dayChange };
   });
 
@@ -109,20 +145,56 @@ export default function PortfolioPage() {
     { key: "fd", label: "FD/Debt" },
   ];
 
+  if (isLoading) {
+    return (
+      <div className="space-y-6 pb-10 animate-fadeUp">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="space-y-2">
+            <div className="w-40 h-8 rounded-lg bg-[var(--surface-raised)] animate-pulse" />
+            <div className="w-56 h-4 rounded-md bg-[var(--surface)] animate-pulse" />
+          </div>
+          <div className="flex gap-2">
+            <div className="w-36 h-9 rounded-lg bg-[var(--surface)] animate-pulse" />
+            <div className="w-32 h-9 rounded-lg bg-[var(--surface-raised)] animate-pulse" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="glass-card p-3.5 space-y-3">
+              <div className="w-24 h-4 rounded-md bg-[var(--surface)] animate-pulse" />
+              <div className="w-32 h-7 rounded-md bg-[var(--surface-raised)] animate-pulse" />
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
+          <div className="lg:col-span-2 glass-card p-5 h-[280px] flex items-center justify-center">
+            <div className="w-36 h-36 rounded-full border-8 border-[var(--surface)] bg-transparent animate-pulse" />
+          </div>
+          <div className="lg:col-span-3 glass-card p-5 h-[280px] space-y-4">
+             <div className="w-48 h-5 rounded-md bg-[var(--surface)] animate-pulse" />
+             <div className="w-full h-[180px] rounded-xl bg-[var(--surface-raised)]/50 animate-pulse" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6 animate-fadeUp pb-10">
+    <div className="space-y-6 pb-10">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="font-serif text-3xl text-[var(--text-main)]">Portfolio</h1>
-          <p className="text-[var(--text-muted)] text-sm mt-1">Live holdings · {enriched.length} positions tracked</p>
+          <h1 className="font-serif text-2xl md:text-3xl text-[var(--text-main)]">Portfolio</h1>
+          <p className="text-[13px] text-[var(--text-muted)] mt-1">Live holdings · {enriched.length} positions tracked</p>
         </div>
         <div className="flex gap-2">
-          <button className="flex items-center gap-2 border border-[var(--border)] bg-[var(--card)] text-[var(--text-main)] text-xs font-bold px-4 py-2.5 rounded-xl hover:border-[var(--border-light)] hover:shadow-sm transition-all">
+          <button className="btn-ghost flex items-center gap-2 text-[12px]">
             <Sparkles size={14} className="text-[var(--blue)]" />
             Review Portfolio
           </button>
-          <button className="flex items-center gap-2 bg-[var(--gold)] text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:opacity-90 transition-all">
+          <button className="btn-primary flex items-center gap-2 text-[12px]">
             <Plus size={14} />
             Add Holding
           </button>
@@ -137,8 +209,8 @@ export default function PortfolioPage() {
           { label: "Total P&L", value: `${totalPnl > 0 ? "+" : ""}${formatINR(totalPnl)}`, color: totalPnl > 0 ? "text-[var(--emerald)]" : "text-[var(--red)]" },
           { label: "XIRR / Return", value: `+${totalPnlPct.toFixed(1)}%`, color: "text-[var(--emerald)]" },
         ].map((s) => (
-          <div key={s.label} className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 hover:border-[var(--border-light)] transition-colors">
-            <p className="text-[10px] font-bold tracking-widest uppercase text-[var(--text-muted)] mb-2">{s.label}</p>
+          <div key={s.label} className="glass-card p-3.5">
+            <p className="section-label mb-2">{s.label}</p>
             <p className={`font-mono text-lg font-bold ${s.color}`}>{s.value}</p>
           </div>
         ))}
@@ -147,8 +219,8 @@ export default function PortfolioPage() {
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
         {/* Allocation Donut */}
-        <div className="lg:col-span-2 bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 hover:border-[var(--border-light)] transition-colors">
-          <h2 className="font-semibold text-sm text-[var(--text-main)] mb-4">Asset Allocation</h2>
+        <div className="lg:col-span-2 glass-card p-5">
+          <h2 className="text-sm font-semibold text-[var(--text-main)] mb-4">Asset Allocation</h2>
           <ResponsiveContainer width="100%" height={180}>
             <PieChart>
               <Pie data={donutData} cx="50%" cy="50%" innerRadius={50} outerRadius={75} paddingAngle={3} dataKey="value">
@@ -171,7 +243,7 @@ export default function PortfolioPage() {
         </div>
 
         {/* Performance vs Nifty */}
-        <div className="lg:col-span-3 bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 hover:border-[var(--border-light)] transition-colors">
+        <div className="lg:col-span-3 glass-card p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-sm text-[var(--text-main)]">Performance vs Nifty 50</h2>
             <div className="flex items-center gap-3 text-[10px]">
@@ -193,9 +265,9 @@ export default function PortfolioPage() {
       </div>
 
       {/* Holdings Table */}
-      <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl overflow-hidden hover:border-[var(--border-light)] transition-colors">
-        <div className="px-6 py-4 border-b border-[var(--border)] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <h2 className="font-semibold text-sm text-[var(--text-main)]">Holdings</h2>
+      <div className="glass-card overflow-hidden">
+        <div className="px-5 py-4 border-b border-[var(--border)] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h2 className="text-sm font-semibold text-[var(--text-main)]">Holdings</h2>
           <div className="flex items-center gap-2 overflow-x-auto">
             {FILTERS.map((f) => (
               <button

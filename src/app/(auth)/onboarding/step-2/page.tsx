@@ -56,9 +56,38 @@ export default function OnboardingStep2() {
     setExpenses((prev) => ({ ...prev, [key]: num }));
   };
 
-  const canProceed = income > 0;
+  const [error, setError] = useState<string | null>(null);
+
+  const validateForm = () => {
+    if (totalIncome <= 0) {
+      setError("Please enter a valid monthly income greater than ₹0.");
+      return false;
+    }
+    
+    // Check reasonable maximum bounds (e.g. max 10 Crore / mo) to avoid schema overflow
+    const maxBound = 100000000;
+    if (income > maxBound || otherIncome > maxBound) {
+      setError("Income amount exceeds maximum allowed limit.");
+      return false;
+    }
+
+    const hasExcessiveExpense = Object.values(expenses).some(v => v > maxBound);
+    if (hasExcessiveExpense) {
+      setError("One or more expenses exceed the maximum allowed limit.");
+      return false;
+    }
+
+    if (totalExpenses > totalIncome * 5) {
+       setError("Expenses are highly disproportionate to income. Please review them.");
+       return false;
+    }
+
+    setError(null);
+    return true;
+  };
 
   const handleNext = () => {
+    if (!validateForm()) return;
     sessionStorage.setItem(
       "onboarding_step2",
       JSON.stringify({ income, otherIncome, isIrregular, expenses })
@@ -198,6 +227,8 @@ export default function OnboardingStep2() {
           </div>
         </div>
       </div>
+      
+      {error && <div className="p-4 bg-[var(--red)]/10 border border-[var(--red)]/30 rounded-xl text-[var(--red)] text-sm font-medium animate-shake">{error}</div>}
 
       <div className="flex gap-3">
         <button
@@ -209,8 +240,7 @@ export default function OnboardingStep2() {
         </button>
         <button
           onClick={handleNext}
-          disabled={!canProceed}
-          className="flex-1 h-12 bg-[var(--gold)] text-white font-bold text-sm rounded-xl hover:opacity-90 hover:shadow-lg hover:-translate-y-[1px] transition-all disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center gap-2"
+          className="flex-1 h-12 bg-[var(--gold)] text-white font-bold text-sm rounded-xl hover:opacity-90 hover:shadow-lg hover:-translate-y-[1px] transition-all flex items-center justify-center gap-2"
         >
           Continue to Goals
           <ArrowRight size={15} />

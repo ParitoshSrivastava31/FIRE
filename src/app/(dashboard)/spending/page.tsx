@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { createClient } from "@/lib/supabase/client";
 import {
   PieChart,
   Pie,
@@ -115,11 +117,96 @@ function buildDonutData(expenses: Expense[]) {
 const CATEGORIES = Object.keys(CATEGORY_META) as Category[];
 
 export default function SpendingPage() {
-  const [expenses, setExpenses] = useState<Expense[]>(MOCK_EXPENSES);
+  const queryClient = useQueryClient();
+  const supabase = createClient();
   const [showModal, setShowModal] = useState(false);
   const [showAudit, setShowAudit] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [auditContent, setAuditContent] = useState(AI_AUDIT);
+
+  // DB Fetching
+  const { data: dbExpenses, isLoading } = useQuery({
+    queryKey: ['expenses'],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return MOCK_EXPENSES;
+      
+      const { data, error } = await supabase
+        .from('expenses')
+        .select('*')
+        .order('date', { ascending: false });
+        
+      if (error) {
+        console.error("Supabase error (falling back to mock):", error);
+        return MOCK_EXPENSES;
+      }
+      
+      if (!data || data.length === 0) return [];
+      
+      return data.map((d: any) => ({
+        id: d.id,
+        name: d.description || d.name || 'Expense',
+        category: d.category as Category,
+        amount: Number(d.amount),
+        date: d.date,
+        isRecurring: d.is_recurring || d.isRecurring
+      }));
+    }
+  });
+
+  const expenses = dbExpenses || MOCK_EXPENSES;
+
+  const addMutation = useMutation({
+    mutationFn: async (expense: Omit<Expense, 'id'>) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        return { ...expense, id: Date.now().toString() } as Expense;
+      }
+      
+      const { data, error } = await supabase.from('expenses').insert({
+        user_id: session.user.id,
+        description: expense.name,
+        category: expense.category,
+        amount: expense.amount,
+        date: expense.date,
+        is_recurring: expense.isRecurring
+      }).select().single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (newExp) => {
+      if (dbExpenses?.length && dbExpenses === MOCK_EXPENSES) {
+        // If we are operating purely in mock mode without DB, simulate an optimistic cache update
+        queryClient.setQueryData(['expenses'], (old: Expense[] | undefined) => {
+           return [newExp, ...(old || [])];
+        });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      }
+      setShowModal(false);
+      setNewExp({ name: "", category: "food", amount: "", date: new Date().toISOString().split("T")[0], isRecurring: false });
+    }
+  });
+  
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return id; // Mock delete
+      const { error } = await supabase.from('expenses').delete().eq('id', id);
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: (deletedId) => {
+       if (dbExpenses?.length && dbExpenses === MOCK_EXPENSES) {
+          queryClient.setQueryData(['expenses'], (old: Expense[] | undefined) => {
+            return old?.filter(e => e.id !== deletedId) || [];
+          });
+       } else {
+          queryClient.invalidateQueries({ queryKey: ['expenses'] });
+       }
+    }
+  });
 
   // New expense form state
   const [newExp, setNewExp] = useState({
@@ -136,17 +223,13 @@ export default function SpendingPage() {
 
   const handleAddExpense = () => {
     if (!newExp.name || !newExp.amount) return;
-    const expense: Expense = {
-      id: Date.now().toString(),
+    addMutation.mutate({
       name: newExp.name,
       category: newExp.category,
       amount: parseFloat(newExp.amount),
       date: newExp.date,
       isRecurring: newExp.isRecurring,
-    };
-    setExpenses((prev) => [expense, ...prev]);
-    setNewExp({ name: "", category: "food", amount: "", date: new Date().toISOString().split("T")[0], isRecurring: false });
-    setShowModal(false);
+    });
   };
 
   const handleGenAudit = async () => {
@@ -186,26 +269,62 @@ export default function SpendingPage() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="space-y-6 pb-10 animate-fadeUp">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="space-y-2">
+            <div className="w-48 h-8 rounded-lg bg-[var(--surface-raised)] animate-pulse" />
+            <div className="w-64 h-4 rounded-md bg-[var(--surface)] animate-pulse" />
+          </div>
+          <div className="flex gap-2">
+            <div className="w-32 h-9 rounded-lg bg-[var(--surface)] animate-pulse" />
+            <div className="w-32 h-9 rounded-lg bg-[var(--surface-raised)] animate-pulse" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="glass-card p-3.5 space-y-3">
+              <div className="w-24 h-4 rounded-md bg-[var(--surface)] animate-pulse" />
+              <div className="w-32 h-7 rounded-md bg-[var(--surface-raised)] animate-pulse" />
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
+          <div className="lg:col-span-2 glass-card p-5 h-[320px] flex items-center justify-center">
+            <div className="w-40 h-40 rounded-full border-8 border-[var(--surface)] bg-transparent animate-pulse" />
+          </div>
+          <div className="lg:col-span-3 glass-card p-5 h-[320px] space-y-4">
+             <div className="w-32 h-5 rounded-md bg-[var(--surface)] animate-pulse" />
+             <div className="w-full h-[220px] rounded-xl bg-[var(--surface-raised)]/50 animate-pulse" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6 animate-fadeUp pb-10">
+    <div className="space-y-6 pb-10">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="font-serif text-3xl text-[var(--text-main)]">Spending Tracker</h1>
-          <p className="text-[var(--text-muted)] text-sm mt-1">March 2025 · {formatINR(totalSpent)} spent of {formatINR(monthlyIncome)} income</p>
+          <h1 className="font-serif text-2xl md:text-3xl text-[var(--text-main)]">Spending Tracker</h1>
+          <p className="text-[13px] text-[var(--text-muted)] mt-1">March 2025 · {formatINR(totalSpent)} spent of {formatINR(monthlyIncome)} income</p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={handleGenAudit}
             disabled={isGenerating}
-            className="flex items-center gap-2 border border-[var(--border)] bg-[var(--card)] text-[var(--text-main)] text-xs font-bold px-4 py-2.5 rounded-xl hover:border-[var(--border-light)] hover:shadow-sm transition-all disabled:opacity-60"
+            className="btn-ghost flex items-center gap-2 text-[12px] disabled:opacity-60"
           >
             <Sparkles size={14} className="text-[var(--blue)]" />
             {isGenerating ? "Analysing..." : "Audit My Spending"}
           </button>
           <button
             onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 bg-[var(--gold)] text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:opacity-90 hover:shadow-md transition-all"
+            className="btn-primary flex items-center gap-2 text-[12px]"
           >
             <Plus size={14} />
             Add Expense
@@ -215,21 +334,21 @@ export default function SpendingPage() {
 
       {/* AI Audit Output */}
       {showAudit && (
-        <div className="bg-[var(--card)] border border-[var(--blue)]/30 rounded-2xl p-6 relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-[var(--blue-dim)] to-transparent opacity-50 rounded-2xl pointer-events-none" />
+        <div className="glass-card p-5 relative overflow-hidden border-[var(--blue)]/20">
+          <div className="absolute inset-0 bg-gradient-to-br from-[var(--blue-dim)] to-transparent opacity-40 pointer-events-none" />
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-full bg-[var(--card)] border border-[var(--border)] flex items-center justify-center">
+                <div className="w-7 h-7 rounded-xl bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center">
                   <Sparkles size={13} className="text-[var(--blue)]" />
                 </div>
-                <span className="text-[10px] font-bold tracking-widest uppercase text-[var(--blue)]">AI Spending Audit</span>
+                <span className="section-label text-[var(--blue)]">AI Spending Audit</span>
               </div>
-              <button onClick={() => setShowAudit(false)} className="text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors">
+              <button onClick={() => setShowAudit(false)} className="text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors duration-300 p-1 rounded-lg hover:bg-[var(--surface)]">
                 <X size={16} />
               </button>
             </div>
-            <div className="text-sm text-[var(--text-sec)] leading-relaxed whitespace-pre-line">
+            <div className="text-[13px] text-[var(--text-sec)] leading-relaxed whitespace-pre-line">
               {auditContent.split("\n").map((line, i) => {
                 if (line.startsWith("**") && line.endsWith("**")) {
                   return <p key={i} className="font-bold text-[var(--text-main)] mt-3 mb-1">{line.replace(/\*\*/g, "")}</p>;
@@ -250,14 +369,14 @@ export default function SpendingPage() {
       {/* Stats Row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Total Spent", value: formatINR(totalSpent), icon: <TrendingDown size={15} />, color: "text-[var(--red)]" },
-          { label: "% of Income", value: `${Math.round((totalSpent / monthlyIncome) * 100)}%`, icon: <Wallet size={15} />, color: totalSpent / monthlyIncome > 0.75 ? "text-[var(--red)]" : "text-[var(--gold)]" },
-          { label: "Biggest Category", value: "Housing", icon: <Home size={15} />, color: "text-[var(--blue)]" },
-          { label: "Transactions", value: `${expenses.length}`, icon: <MoreHorizontal size={15} />, color: "text-[var(--text-muted)]" },
+          { label: "Total Spent", value: formatINR(totalSpent), icon: <TrendingDown size={14} />, color: "text-[var(--red)]" },
+          { label: "% of Income", value: `${Math.round((totalSpent / monthlyIncome) * 100)}%`, icon: <Wallet size={14} />, color: totalSpent / monthlyIncome > 0.75 ? "text-[var(--red)]" : "text-[var(--gold)]" },
+          { label: "Biggest Category", value: "Housing", icon: <Home size={14} />, color: "text-[var(--blue)]" },
+          { label: "Transactions", value: `${expenses.length}`, icon: <MoreHorizontal size={14} />, color: "text-[var(--text-muted)]" },
         ].map((s) => (
-          <div key={s.label} className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 hover:border-[var(--border-light)] transition-colors">
-            <div className={`flex items-center gap-1.5 ${s.color} mb-2`}>{s.icon}<span className="text-[10px] font-bold tracking-widest uppercase text-[var(--text-muted)]">{s.label}</span></div>
-            <p className="font-mono text-xl font-medium text-[var(--text-main)]">{s.value}</p>
+          <div key={s.label} className="glass-card p-3.5">
+            <div className={`flex items-center gap-1.5 ${s.color} mb-2`}>{s.icon}<span className="section-label">{s.label}</span></div>
+            <p className="font-mono text-lg font-medium text-[var(--text-main)]">{s.value}</p>
           </div>
         ))}
       </div>
@@ -265,8 +384,8 @@ export default function SpendingPage() {
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
         {/* Donut Chart */}
-        <div className="lg:col-span-2 bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 hover:border-[var(--border-light)] transition-colors">
-          <h2 className="font-semibold text-sm text-[var(--text-main)] mb-5">By Category</h2>
+        <div className="lg:col-span-2 glass-card p-5">
+          <h2 className="text-sm font-semibold text-[var(--text-main)] mb-5">By Category</h2>
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
               <Pie data={donutData} cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={3} dataKey="value">
@@ -294,8 +413,8 @@ export default function SpendingPage() {
         </div>
 
         {/* Trend Chart */}
-        <div className="lg:col-span-3 bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 hover:border-[var(--border-light)] transition-colors">
-          <h2 className="font-semibold text-sm text-[var(--text-main)] mb-5">6-Month Trend</h2>
+        <div className="lg:col-span-3 glass-card p-5">
+          <h2 className="text-sm font-semibold text-[var(--text-main)] mb-5">6-Month Trend</h2>
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={TREND_DATA} barSize={10}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
@@ -315,10 +434,10 @@ export default function SpendingPage() {
       </div>
 
       {/* Expense List */}
-      <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl overflow-hidden hover:border-[var(--border-light)] transition-colors">
-        <div className="px-6 py-4 border-b border-[var(--border)] flex items-center justify-between">
-          <h2 className="font-semibold text-sm text-[var(--text-main)]">Transactions</h2>
-          <span className="text-xs text-[var(--text-muted)]">{expenses.length} entries this month</span>
+      <div className="glass-card overflow-hidden">
+        <div className="px-5 py-4 border-b border-[var(--border)] flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-[var(--text-main)]">Transactions</h2>
+          <span className="text-[11px] text-[var(--text-muted)]">{expenses.length} entries this month</span>
         </div>
         <div className="divide-y divide-[var(--border)]/60">
           {expenses.map((expense) => {
@@ -340,8 +459,9 @@ export default function SpendingPage() {
                   <p className="text-[11px] text-[var(--text-muted)]">{expense.date}</p>
                 </div>
                 <button
-                  onClick={() => setExpenses((prev) => prev.filter((e) => e.id !== expense.id))}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity text-[var(--text-muted)] hover:text-[var(--red)]"
+                  onClick={() => deleteMutation.mutate(expense.id)}
+                  disabled={deleteMutation.isPending}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity text-[var(--text-muted)] hover:text-[var(--red)] disabled:opacity-50"
                 >
                   <X size={14} />
                 </button>
@@ -353,48 +473,48 @@ export default function SpendingPage() {
 
       {/* Add Expense Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-2xl w-full max-w-md">
-            <div className="flex items-center justify-between p-6 border-b border-[var(--border)]">
-              <h2 className="font-semibold text-[var(--text-main)]">Add Expense</h2>
-              <button onClick={() => setShowModal(false)} className="text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors">
-                <X size={18} />
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4" style={{ animation: 'reveal-up 0.3s ease both' }}>
+          <div className="glass-card shadow-2xl w-full max-w-md border-[var(--border-light)]" style={{ backdropFilter: 'blur(40px)' }}>
+            <div className="flex items-center justify-between p-5 border-b border-[var(--border)]">
+              <h2 className="text-sm font-semibold text-[var(--text-main)]">Add Expense</h2>
+              <button onClick={() => setShowModal(false)} className="text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors duration-300 p-1 rounded-lg hover:bg-[var(--surface)]">
+                <X size={16} />
               </button>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="p-5 space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Description</label>
+                <label className="section-label">Description</label>
                 <input
                   type="text"
                   placeholder="e.g. Zomato order"
-                  className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--background)] text-sm text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/20 transition-all"
+                  className="input-premium text-[13px]"
                   value={newExp.name}
                   onChange={(e) => setNewExp({ ...newExp, name: e.target.value })}
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Amount (₹)</label>
+                  <label className="section-label">Amount (₹)</label>
                   <input
                     type="number"
                     placeholder="0"
-                    className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--background)] text-sm text-[var(--text-main)] focus:outline-none focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/20 transition-all"
+                    className="input-premium text-[13px]"
                     value={newExp.amount}
                     onChange={(e) => setNewExp({ ...newExp, amount: e.target.value })}
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Date</label>
+                  <label className="section-label">Date</label>
                   <input
                     type="date"
-                    className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--background)] text-sm text-[var(--text-main)] focus:outline-none focus:border-[var(--gold)] transition-all"
+                    className="input-premium text-[13px]"
                     value={newExp.date}
                     onChange={(e) => setNewExp({ ...newExp, date: e.target.value })}
                   />
                 </div>
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Category</label>
+                <label className="section-label">Category</label>
                 <div className="grid grid-cols-3 gap-2">
                   {CATEGORIES.map((cat) => {
                     const meta = CATEGORY_META[cat];
@@ -422,10 +542,10 @@ export default function SpendingPage() {
               </label>
               <button
                 onClick={handleAddExpense}
-                disabled={!newExp.name || !newExp.amount}
-                className="w-full h-11 bg-[var(--gold)] text-white font-bold text-sm rounded-xl hover:opacity-90 transition-all disabled:opacity-40 disabled:pointer-events-none"
+                disabled={!newExp.name || !newExp.amount || addMutation.isPending}
+                className="w-full btn-primary text-[13px] text-center disabled:opacity-40 disabled:pointer-events-none"
               >
-                Add Expense
+                {addMutation.isPending ? "Adding..." : "Add Expense"}
               </button>
             </div>
           </div>

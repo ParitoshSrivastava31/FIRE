@@ -1,699 +1,445 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import {
-  TrendingUp,
   Sparkles,
   Shield,
   Target,
-  PieChart,
   Zap,
   Map,
-  Bell,
   ArrowRight,
-  Check,
-  ChevronDown,
-  Star,
+  TrendingUp,
+  ChevronRight,
   Activity,
   Wallet,
-  BarChart2,
+  Check,
+  Star,
 } from "lucide-react";
-
-// Ticker Items
-const TICKER_ITEMS = [
-  { label: "NIFTY 50", value: "23,452.10", change: "+0.84%" },
-  { label: "SENSEX", value: "77,301.45", change: "+0.72%" },
-  { label: "GOLD", value: "₹74,250/10g", change: "+0.31%" },
-  { label: "USD/INR", value: "₹83.42", change: "-0.12%" },
-  { label: "HDFC BANK", value: "₹1,598.70", change: "+1.42%" },
-  { label: "RELIANCE", value: "₹2,854.90", change: "+0.65%" },
-  { label: "INFOSYS", value: "₹1,712.30", change: "-0.23%" },
-  { label: "NIFTY MIDCAP", value: "51,240.85", change: "+1.04%" },
-];
 
 const FEATURES = [
   {
-    icon: <Sparkles size={22} />,
-    color: "blue",
+    icon: <Sparkles className="w-5 h-5" />,
     title: "AI Investment Thesis",
     description:
-      "Claude AI builds your personalised investment plan — named funds, exact SIP amounts, and a 30-year wealth projection graph.",
+      "A conversational intelligence that builds a precise SIP roadmap, projecting decades of wealth from your lifestyle.",
   },
   {
-    icon: <Wallet size={22} />,
-    color: "gold",
+    icon: <Wallet className="w-5 h-5" />,
     title: "Lifestyle-to-Wealth Bridge",
     description:
-      "\"You spend ₹16K dining out. Redirect ₹8K → ELSS = ₹42L in 15 years.\" Monetra turns spending habits into investable insight.",
+      "Every habit has a future value. We translate your daily spending into potential net worth over decades.",
   },
   {
-    icon: <TrendingUp size={22} />,
-    color: "emerald",
-    title: "Live Portfolio Tracker",
+    icon: <Map className="w-5 h-5" />,
+    title: "Real Estate Explorer",
     description:
-      "Real-time P&L, XIRR, and day-change for stocks, mutual funds, gold, FDs, and NPS — all in one view vs Nifty 50.",
+      "Deep-dive into Tier 1, 2, and 3 cities across India. Discover yields and granular appreciation data.",
   },
   {
-    icon: <Map size={22} />,
-    color: "gold",
-    title: "India Real Estate Explorer",
+    icon: <Activity className="w-5 h-5" />,
+    title: "Live Portfolio Harmony",
     description:
-      "Price/sqft, rental yield, and YoY appreciation for every locality in Tier-1, 2, and 3 cities. No other tool has this.",
+      "Equities, Mutual Funds, NPS, and Gold. A single, breathing dashboard tracking your true net worth.",
   },
   {
-    icon: <Target size={22} />,
-    color: "blue",
-    title: "Goal Tracker",
+    icon: <Target className="w-5 h-5" />,
+    title: "Dream Orchestration",
     description:
-      "Set goals, track milestones, and get AI acceleration suggestions. Slide the SIP amount and watch your target year shift in real-time.",
+      "Set milestones and watch the AI dynamically adjust your allocation to keep you on track.",
   },
   {
-    icon: <Zap size={22} />,
-    color: "emerald",
+    icon: <Zap className="w-5 h-5" />,
     title: "Passive Income Hub",
     description:
-      "AI-curated dividend stocks, REITs, P2P lending, and FD laddering strategies based on your investable surplus.",
-  },
-  {
-    icon: <Bell size={22} />,
-    color: "gold",
-    title: "Smart Alerts",
-    description:
-      "Stock price alerts, SIP reminders, goal milestones, and rebalancing triggers — delivered in-app, email, and WhatsApp.",
-  },
-  {
-    icon: <Shield size={22} />,
-    color: "blue",
-    title: "India-Native & Compliant",
-    description:
-      "Built for NSE/BSE, AMFI, SGB, NPS, PPF, and SEBI-compliant advice boundaries. Not a generic global tool repackaged.",
-  },
-];
-
-const PLANS = [
-  {
-    name: "Free",
-    price: "₹0",
-    period: "/month",
-    tagline: "Get started, no card required",
-    cta: "Start for Free",
-    ctaHref: "/signup",
-    highlight: false,
-    features: [
-      "3 AI thesis generations/month",
-      "5 spending audits/month",
-      "Up to 10 portfolio holdings",
-      "Top 5 cities — Real Estate",
-      "Up to 3 goals",
-      "5 price alerts max",
-    ],
-    missing: ["Daily AI Insights", "Chat with FinSight", "Passive Income Hub", "CSV Export"],
-  },
-  {
-    name: "Pro",
-    price: "₹199",
-    period: "/month",
-    tagline: "For serious wealth builders",
-    cta: "Start 14-Day Free Trial",
-    ctaHref: "/signup?plan=pro",
-    highlight: true,
-    badge: "Most Popular",
-    features: [
-      "Unlimited AI thesis generations",
-      "Unlimited spending audits",
-      "Unlimited portfolio holdings",
-      "All cities — Real Estate",
-      "Unlimited goals",
-      "50 price alerts",
-      "Daily AI Insights",
-      "Chat with FinSight (5/day)",
-      "Passive Income Hub",
-      "CSV Export",
-    ],
-    missing: ["Weekly AI Portfolio Review", "Branded PDF", "WhatsApp Alerts"],
-  },
-  {
-    name: "Elite",
-    price: "₹499",
-    period: "/month",
-    tagline: "For HNI and power users",
-    cta: "Go Elite",
-    ctaHref: "/signup?plan=elite",
-    highlight: false,
-    features: [
-      "Everything in Pro",
-      "Weekly AI Portfolio Review",
-      "Business Idea Generator",
-      "Unlimited chat sessions",
-      "Branded PDF reports",
-      "Offline Real Estate reports",
-      "WhatsApp Alerts",
-      "Priority AI processing",
-      "Angel Investing insights (₹10L+ surplus)",
-    ],
-    missing: [],
+      "Automated dividend strategies, REITs, and P2P lending curation for when your money works without you.",
   },
 ];
 
 const TESTIMONIALS = [
   {
     name: "Priya Sharma",
-    city: "Bangalore",
-    occupation: "Software Engineer",
-    plan: "Pro",
-    avatar: "PS",
+    role: "Architect, Mumbai",
     quote:
-      "Monetra showed me I was spending ₹22K/month on food delivery. Redirecting just half of that into a Nifty 50 SIP — I'm on track for ₹1.4Cr in 12 years. Genuinely life-changing.",
-    stars: 5,
+      "Monetra doesn't just track my money — it calms my financial anxiety and shows me a tangible, serene future.",
   },
   {
     name: "Rahul Agarwal",
-    city: "Kanpur",
-    occupation: "Business Owner",
-    plan: "Elite",
-    avatar: "RA",
+    role: "Studio Director, Bangalore",
     quote:
-      "The real estate explorer for Tier-2 cities is unreal. I found a locality in Kanpur with 11% YoY appreciation that I had no idea about. Bought a flat, now earning 6.2% rental yield.",
-    stars: 5,
-  },
-  {
-    name: "Meera Nair",
-    city: "Kochi",
-    occupation: "Freelancer",
-    plan: "Pro",
-    avatar: "MN",
-    quote:
-      "As a freelancer, my income is irregular. Monetra's dynamic surplus calculator accounts for that — it tells me exactly how much to invest each month based on what I actually earned.",
-    stars: 5,
+      "I finally understand the 12-year impact of my spending habits, wrapped in an experience that feels incredibly premium.",
   },
 ];
 
-const FAQS = [
-  {
-    q: "Is Monetra a SEBI Registered Investment Advisor?",
-    a: "No. Monetra is a financial information and planning tool. All AI-generated content is for educational purposes and is not personalised investment advice. We clearly disclose SEBI boundaries in every AI output. Always consult a SEBI RIA before making investment decisions.",
-  },
-  {
-    q: "What makes Monetra different from ET Money, Groww, or INDmoney?",
-    a: "Those apps execute transactions. Monetra is your planning OS — it tells you *what* to invest, *why*, and *how much*, based on your spending habits and goals. We also cover Tier-2/3 city real estate data that no competitor has.",
-  },
-  {
-    q: "Is my financial data safe?",
-    a: "Yes. All data is stored in Supabase with Row Level Security — you can only access your own data. We are DPDP Act 2023 and GDPR compliant. We do not sell or share your data with any third party.",
-  },
-  {
-    q: "Do I need to connect my bank account?",
-    a: "No. You enter your income and expenses manually (or paste a bank statement). Future versions will support Zerodha Kite and Groww API auto-import for portfolio holdings.",
-  },
-  {
-    q: "What is the 14-day Pro trial?",
-    a: "Sign up for free and get full Pro plan features for 14 days — no credit card required. At the end of the trial, you can choose to upgrade or continue on the Free plan.",
-  },
-  {
-    q: "Which AI model powers the investment thesis?",
-    a: "Monetra uses Claude (Anthropic) via a custom system prompt trained on India-specific finance: NSE/BSE equities, AMFI mutual funds, SGB, NPS, PPF, and SEBI compliance requirements.",
-  },
-];
-
-function FAQItem({ q, a }: { q: string; a: string }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="border-b border-[var(--border)] last:border-0">
-      <button
-        className="w-full flex items-center justify-between text-left py-5 gap-4"
-        onClick={() => setOpen(!open)}
-      >
-        <span className="font-semibold text-[var(--text-main)] text-[15px] leading-snug">{q}</span>
-        <ChevronDown
-          size={18}
-          className={`shrink-0 text-[var(--text-muted)] transition-transform duration-300 ${open ? "rotate-180" : ""}`}
-        />
-      </button>
-      <div
-        className={`overflow-hidden transition-all duration-300 ${open ? "max-h-60 pb-5" : "max-h-0"}`}
-      >
-        <p className="text-[var(--text-sec)] text-sm leading-relaxed">{a}</p>
-      </div>
-    </div>
-  );
+function useInView(threshold = 0.15) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isInView, setIsInView] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setIsInView(true); },
+      { threshold }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [threshold]);
+  return { ref, isInView };
 }
 
-function FeatureCard({ icon, color, title, description }: (typeof FEATURES)[0]) {
-  const colorMap: Record<string, string> = {
-    blue: "bg-[var(--blue-dim)] text-[var(--blue)]",
-    gold: "bg-[var(--gold-dim)] text-[var(--gold)]",
-    emerald: "bg-[var(--emerald-dim)] text-[var(--emerald)]",
-  };
+function Section({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+  const { ref, isInView } = useInView();
   return (
-    <div className="group bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 flex flex-col gap-4 hover:border-[var(--border-light)] hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-default">
-      <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${colorMap[color]} group-hover:scale-110 transition-transform duration-300`}>
-        {icon}
-      </div>
-      <div>
-        <h3 className="font-bold text-[var(--text-main)] text-[15px] mb-2">{title}</h3>
-        <p className="text-[var(--text-sec)] text-sm leading-relaxed">{description}</p>
-      </div>
+    <div
+      ref={ref}
+      className={`transition-all duration-700 ease-premium ${className}`}
+      style={{
+        opacity: isInView ? 1 : 0,
+        transform: isInView ? "translateY(0)" : "translateY(24px)",
+        transitionDelay: `${delay}ms`,
+      }}
+    >
+      {children}
     </div>
   );
 }
 
 export default function LandingPage() {
-  const tickerRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   return (
-    <div className="min-h-screen bg-[var(--background)] overflow-x-hidden">
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/90 backdrop-blur-xl">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="font-serif text-2xl text-[var(--gold)] tracking-tight">Monetra</span>
-            <span className="hidden sm:inline-block text-[10px] font-bold tracking-[0.15em] uppercase text-[var(--text-muted)] border border-[var(--border)] rounded-full px-2 py-0.5">
-              Beta
-            </span>
+    <div className="min-h-screen bg-[var(--background)] overflow-hidden relative font-sans">
+
+      {/* ── Ambient Background ── */}
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div className="orb bg-[var(--gold)] w-[500px] h-[500px] top-[-5%] left-[-5%] animate-drift" style={{ animationDuration: '30s' }} />
+        <div className="orb bg-[var(--blue)] w-[400px] h-[400px] bottom-[10%] right-[-5%] animate-drift" style={{ animationDelay: '-8s', animationDuration: '35s' }} />
+        <div className="orb bg-[var(--emerald)] w-[350px] h-[350px] top-[40%] left-[50%] animate-drift" style={{ animationDelay: '-15s', animationDuration: '28s', opacity: 0.15 }} />
+      </div>
+
+      {/* ── Navigation ── */}
+      <nav className="fixed top-0 w-full z-50 glass-nav transition-all duration-500">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[var(--gold)] to-[var(--gold)]/70 flex items-center justify-center group-hover:shadow-[0_0_16px_var(--gold-glow)] transition-all duration-500">
+              <Sparkles className="w-3.5 h-3.5 text-white" />
+            </div>
+            <span className="font-serif text-xl tracking-tight text-[var(--text-main)]">Monetra</span>
           </Link>
           <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-sm font-medium text-[var(--text-sec)] hover:text-[var(--text-main)] transition-colors">Features</a>
-            <a href="#pricing" className="text-sm font-medium text-[var(--text-sec)] hover:text-[var(--text-main)] transition-colors">Pricing</a>
-            <a href="#faq" className="text-sm font-medium text-[var(--text-sec)] hover:text-[var(--text-main)] transition-colors">FAQ</a>
+            <Link href="#features" className="text-[13px] font-medium text-[var(--text-sec)] hover:text-[var(--text-main)] transition-colors duration-300">Features</Link>
+            <Link href="#pricing" className="text-[13px] font-medium text-[var(--text-sec)] hover:text-[var(--text-main)] transition-colors duration-300">Pricing</Link>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/login" className="hidden sm:inline-flex text-sm font-medium text-[var(--text-sec)] hover:text-[var(--text-main)] transition-colors px-3 py-2">
+            <Link href="/login" className="text-[13px] font-medium text-[var(--text-sec)] hover:text-[var(--text-main)] transition-colors duration-300 px-3 py-2">
               Sign In
             </Link>
             <Link
               href="/signup"
-              className="inline-flex items-center gap-1.5 bg-[var(--gold)] text-white text-sm font-bold px-4 py-2 rounded-xl hover:opacity-90 hover:shadow-lg hover:-translate-y-[1px] transition-all"
+              className="btn-primary text-[13px] !px-4 !py-2 rounded-lg"
             >
               Get Started
-              <ArrowRight size={14} />
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 sm:px-6 relative overflow-hidden">
-        {/* Background gradients */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-20 left-1/4 w-96 h-96 bg-[var(--blue-dim)] rounded-full blur-3xl opacity-60 animate-drift" />
-          <div className="absolute top-40 right-1/4 w-80 h-80 bg-[var(--gold-dim)] rounded-full blur-3xl opacity-50 animate-drift" style={{ animationDelay: "4s" }} />
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[120%] h-px bg-gradient-to-r from-transparent via-[var(--border)] to-transparent" />
+      {/* ── Hero Section ── */}
+      <section className="relative z-10 pt-32 pb-20 px-6 flex flex-col items-center text-center min-h-[90vh] justify-center">
+
+        <div
+          className={`inline-flex items-center gap-2 mb-6 glass-panel px-3.5 py-1.5 rounded-full transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--emerald)] animate-glow-pulse" />
+          <span className="text-[11px] font-semibold tracking-widest uppercase text-[var(--text-muted)]">
+            AI-Powered Finance
+          </span>
         </div>
 
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 bg-[var(--card)] border border-[var(--border)] rounded-full px-4 py-2 mb-8 shadow-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-[var(--emerald)] animate-pulse" />
-            <span className="text-xs font-bold tracking-widest uppercase text-[var(--text-muted)]">
-              India&apos;s First Lifestyle-to-Investment AI
+        <h1
+          className={`font-serif text-5xl sm:text-6xl md:text-7xl lg:text-[80px] text-[var(--text-main)] leading-[1.08] tracking-[-0.02em] max-w-4xl mx-auto text-balance transition-all duration-700 delay-100 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+        >
+          Where your lifestyle
+          <br />
+          meets{" "}
+          <span className="relative inline-block">
+            <span className="relative z-10 italic gradient-text from-[var(--gold)] via-[var(--blue)] to-[var(--emerald)]">
+              infinite potential
             </span>
-          </div>
+            <div className="absolute -inset-2 blur-2xl opacity-15 bg-gradient-to-r from-[var(--gold)] via-[var(--blue)] to-[var(--emerald)] z-0 animate-breathe" />
+          </span>
+        </h1>
 
-          <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl text-[var(--text-main)] leading-[1.05] tracking-tight mb-6 text-balance">
-            Turn your lifestyle into a{" "}
-            <span className="text-[var(--gold)] relative">
-              wealth strategy
-              <svg className="absolute -bottom-1 left-0 w-full" viewBox="0 0 300 8" fill="none">
-                <path d="M2 6C50 2 100 1 150 3C200 5 250 4 298 2" stroke="var(--gold)" strokeWidth="2.5" strokeLinecap="round" opacity="0.5"/>
-              </svg>
-            </span>
-          </h1>
+        <p
+          className={`mt-6 text-lg text-[var(--text-sec)] max-w-xl mx-auto leading-relaxed font-light transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+        >
+          A deeply sensory, AI-driven financial planner that translates your habits into a living architecture of growing wealth.
+        </p>
 
-          <p className="text-lg sm:text-xl text-[var(--text-sec)] max-w-2xl mx-auto leading-relaxed mb-10">
-            Monetra audits your spending, builds a personalised AI investment thesis, and tracks your wealth across stocks, mutual funds, gold, and real estate — all in one place.
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+        {/* Central action bar */}
+        <div
+          className={`mt-10 w-full max-w-xl relative group z-20 transition-all duration-700 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+        >
+          <div className="absolute -inset-[2px] bg-gradient-to-r from-[var(--gold)] via-[var(--blue)] to-[var(--emerald)] rounded-2xl opacity-0 group-hover:opacity-20 group-focus-within:opacity-30 transition-opacity duration-700 blur-sm" />
+          <div className="relative flex items-center glass-panel rounded-xl p-1.5 transition-all duration-500 focus-within:border-[var(--border-light)]">
+            <div className="pl-3 pr-1">
+              <Sparkles className="w-4 h-4 text-[var(--gold)]" />
+            </div>
+            <input
+              type="text"
+              placeholder="Describe your vision (e.g., 'A home in the mountains by 45')"
+              className="w-full bg-transparent border-none outline-none text-[var(--text-main)] placeholder-[var(--text-muted)] text-sm px-2 py-3 font-light"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+            />
             <Link
-              href="/signup"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[var(--gold)] text-white font-bold px-8 py-4 rounded-xl hover:opacity-90 hover:shadow-xl hover:-translate-y-0.5 transition-all text-base"
+              href={`/signup?vision=${encodeURIComponent(searchValue)}`}
+              className="bg-[var(--text-main)] text-[var(--background)] p-3 rounded-lg hover:scale-105 transition-all duration-300 flex items-center justify-center shrink-0"
             >
-              Start for Free — No card needed
-              <ArrowRight size={16} />
-            </Link>
-            <Link
-              href="/login"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[var(--card)] border border-[var(--border)] text-[var(--text-main)] font-semibold px-8 py-4 rounded-xl hover:border-[var(--border-light)] hover:shadow-md transition-all text-base"
-            >
-              Sign In
+              <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
+        </div>
 
-          <p className="mt-5 text-xs text-[var(--text-muted)] font-medium">
-            14-day Pro trial · No credit card required · DPDP-compliant
+        {/* Social proof */}
+        <div className={`mt-8 flex items-center gap-4 transition-all duration-700 delay-500 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+          <div className="flex -space-x-2">
+            {["bg-gradient-to-br from-[var(--gold)] to-[var(--emerald)]", "bg-gradient-to-br from-[var(--blue)] to-[var(--gold)]", "bg-gradient-to-br from-[var(--emerald)] to-[var(--blue)]"].map((bg, i) => (
+              <div key={i} className={`w-7 h-7 rounded-full ${bg} border-2 border-[var(--background)] flex items-center justify-center text-[9px] font-bold text-white`}>
+                {["PS", "RA", "AK"][i]}
+              </div>
+            ))}
+          </div>
+          <p className="text-[12px] text-[var(--text-muted)]">
+            <span className="font-semibold text-[var(--text-sec)]">2,400+</span> people building wealth with Monetra
           </p>
+        </div>
+      </section>
 
-          {/* Hero Card Preview */}
-          <div className="mt-16 max-w-3xl mx-auto relative">
-            <div className="absolute -inset-4 bg-gradient-to-b from-transparent to-[var(--background)] z-10 pointer-events-none bottom-0 top-auto h-32" />
-            <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-2xl overflow-hidden">
-              {/* Mock Dashboard Header */}
-              <div className="bg-[var(--card)] border-b border-[var(--border)] px-6 py-4 flex items-center justify-between">
-                <span className="font-serif text-lg text-[var(--gold)]">Monetra</span>
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[var(--emerald)] animate-pulse" />
-                  <span className="text-xs font-medium text-[var(--text-muted)]">Market Open</span>
+      {/* ── Dashboard Preview ── */}
+      <Section className="relative z-10 px-6 pb-28">
+        <div className="max-w-4xl mx-auto relative">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[70%] bg-gradient-to-tr from-[var(--blue)] to-[var(--gold)] blur-[100px] opacity-8 dark:opacity-15 pointer-events-none" />
+
+          <div className="glass-panel p-1.5 rounded-2xl overflow-hidden shadow-2xl relative border-[var(--border-light)]">
+            <div className="bg-white/90 dark:bg-black/90 backdrop-blur-xl rounded-xl border border-[var(--border)] overflow-hidden">
+              {/* Window chrome */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)]">
+                <div className="flex gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[var(--red)] opacity-60" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-[var(--gold)] opacity-60" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-[var(--emerald)] opacity-60" />
+                </div>
+                <div className="text-[10px] font-mono text-[var(--text-muted)] flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--emerald)] animate-pulse" />
+                  Live Dashboard
                 </div>
               </div>
-              {/* Mock KPI Cards */}
-              <div className="p-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[
-                  { label: "Net Worth", val: "₹1.24Cr", chg: "+2.4%", pos: true },
-                  { label: "Portfolio", val: "₹84.6L", chg: "+1.8%", pos: true },
-                  { label: "Monthly Cashflow", val: "₹1.8L", chg: "+12%", pos: true },
-                  { label: "Goals On-Track", val: "4/5", chg: "+1 this month", pos: true },
-                ].map((item) => (
-                  <div key={item.label} className="bg-[var(--background)] border border-[var(--border)] rounded-xl p-4">
-                    <p className="text-[9px] font-bold tracking-widest uppercase text-[var(--text-muted)] mb-2">{item.label}</p>
-                    <p className="font-mono text-lg font-medium text-[var(--text-main)]">{item.val}</p>
-                    <p className="text-[11px] font-semibold text-[var(--emerald)] mt-1">{item.chg}</p>
-                  </div>
-                ))}
-              </div>
-              {/* Mock AI Insight */}
-              <div className="px-6 pb-6">
-                <div className="bg-[var(--blue-dim)] border border-[var(--blue)]/20 rounded-xl p-4 flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[var(--card)] border border-[var(--border)] flex items-center justify-center shrink-0">
-                    <Sparkles size={14} className="text-[var(--blue)]" />
-                  </div>
+              {/* Content */}
+              <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="md:col-span-1 space-y-5">
                   <div>
-                    <p className="text-[10px] font-bold tracking-widest uppercase text-[var(--blue)] mb-1">AI Insight</p>
-                    <p className="text-sm text-[var(--text-sec)] leading-relaxed">
-                      Your dining spend is <span className="font-semibold text-[var(--text-main)]">22% above</span> your 3-month average. Redirecting{" "}
-                      <span className="font-semibold text-[var(--text-main)]">₹3,000</span> to your Home Goal SIP would add{" "}
-                      <span className="font-semibold text-[var(--emerald)]">₹8.4L</span> to your corpus in 12 years.
+                    <p className="section-label mb-1">True Net Worth</p>
+                    <p className="font-serif text-3xl text-[var(--text-main)]">₹1.42Cr</p>
+                    <p className="text-xs text-[var(--emerald)] flex items-center gap-1 mt-1.5 font-medium">
+                      <TrendingUp className="w-3.5 h-3.5" /> +2.4% this month
+                    </p>
+                  </div>
+                  <div className="glass-card p-3.5 border-l-2 border-l-[var(--gold)]">
+                    <p className="section-label text-[var(--gold)] mb-1.5">AI Insight</p>
+                    <p className="text-xs font-light text-[var(--text-sec)] leading-relaxed">
+                      Your weekend dining surplus of ₹12,000 could accelerate your <strong className="text-[var(--text-main)]">Mountain Home SIP</strong> by 14 months.
                     </p>
                   </div>
                 </div>
+                <div className="md:col-span-2 relative min-h-[180px] flex items-end">
+                  <div className="w-full h-full absolute inset-0 flex items-end justify-between px-3 pb-3 gap-1">
+                    {[35, 50, 40, 65, 58, 80, 74, 95, 88, 100].map((h, i) => (
+                      <div key={i} className="flex-1 rounded-t-md relative overflow-hidden" style={{ height: `${h}%` }}>
+                        <div
+                          className="absolute inset-0 rounded-t-md"
+                          style={{
+                            background: `linear-gradient(to top, var(--blue-dim), var(--blue))`,
+                            opacity: 0.15 + (h / 200),
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </section>
+      </Section>
 
-      {/* Live Ticker */}
-      <div className="border-y border-[var(--border)] bg-[var(--card)] overflow-hidden py-3">
-        <div className="flex gap-0 animate-[ticker_30s_linear_infinite]" style={{ width: "max-content" }}>
-          {[...TICKER_ITEMS, ...TICKER_ITEMS, ...TICKER_ITEMS].map((item, i) => (
-            <div key={i} className="flex items-center gap-3 px-6 border-r border-[var(--border)] last:border-0 shrink-0">
-              <span className="text-[11px] font-bold text-[var(--text-muted)] tracking-wider uppercase">{item.label}</span>
-              <span className="font-mono text-sm font-medium text-[var(--text-main)]">{item.value}</span>
-              <span className={`text-[11px] font-bold ${item.change.startsWith("+") ? "text-[var(--emerald)]" : "text-[var(--red)]"}`}>
-                {item.change}
-              </span>
+      {/* ── Features ── */}
+      <section id="features" className="relative z-10 py-24 px-6">
+        <div className="max-w-5xl mx-auto">
+          <Section>
+            <div className="text-center mb-16 max-w-2xl mx-auto">
+              <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl text-[var(--text-main)] mb-4 tracking-[-0.02em]">
+                A quiet mechanism for <span className="italic text-[var(--gold)]">growth</span>
+              </h2>
+              <p className="text-base text-[var(--text-sec)] font-light leading-relaxed">
+                Every tool is designed to feel effortless, not overwhelming. Intelligence should be calm.
+              </p>
             </div>
-          ))}
-        </div>
-      </div>
+          </Section>
 
-      {/* Social Proof Bar */}
-      <section className="py-10 px-4 sm:px-6 border-b border-[var(--border)]">
-        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-14">
-          {[
-            { n: "12,000+", l: "Beta Signups" },
-            { n: "₹850Cr+", l: "Portfolio Tracked" },
-            { n: "4.9★", l: "Early User Rating" },
-            { n: "50+", l: "Indian Cities" },
-          ].map((s) => (
-            <div key={s.l} className="text-center">
-              <p className="font-serif text-3xl sm:text-4xl text-[var(--text-main)] font-bold">{s.n}</p>
-              <p className="text-xs font-bold tracking-widest uppercase text-[var(--text-muted)] mt-1">{s.l}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Features Grid */}
-      <section id="features" className="py-24 px-4 sm:px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-xs font-bold tracking-[0.2em] uppercase text-[var(--gold)] mb-4">What Monetra Does</p>
-            <h2 className="font-serif text-4xl sm:text-5xl text-[var(--text-main)] mb-5">
-              Everything in one wealth OS
-            </h2>
-            <p className="text-[var(--text-sec)] max-w-xl mx-auto text-lg leading-relaxed">
-              Not just another expense tracker or investment app — Monetra bridges both with real-time AI and India-native data.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {FEATURES.map((f) => (
-              <FeatureCard key={f.title} {...f} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {FEATURES.map((feature, idx) => (
+              <Section key={idx} delay={idx * 80}>
+                <div className="glass-card glass-panel-hover p-6 rounded-2xl group cursor-default relative overflow-hidden h-full">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--glow-gold)] rounded-full blur-3xl opacity-0 group-hover:opacity-60 transition-opacity duration-700" />
+                  <div className="w-10 h-10 rounded-xl bg-[var(--surface-hover)] flex items-center justify-center mb-4 border border-[var(--border)] text-[var(--gold)] group-hover:bg-[var(--gold-dim)] group-hover:border-[var(--gold-glow)] transition-all duration-500">
+                    {feature.icon}
+                  </div>
+                  <h3 className="text-[15px] font-semibold text-[var(--text-main)] mb-2">{feature.title}</h3>
+                  <p className="text-[13px] text-[var(--text-sec)] font-light leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
+              </Section>
             ))}
           </div>
         </div>
       </section>
 
-      {/* AI Demo Section */}
-      <section className="py-24 px-4 sm:px-6 bg-[var(--card)] border-y border-[var(--border)] relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 right-0 w-72 h-72 bg-[var(--blue-dim)] rounded-full blur-3xl opacity-40" />
-          <div className="absolute bottom-0 left-0 w-72 h-72 bg-[var(--gold-dim)] rounded-full blur-3xl opacity-30" />
-        </div>
-        <div className="max-w-5xl mx-auto relative z-10">
-          <div className="text-center mb-12">
-            <p className="text-xs font-bold tracking-[0.2em] uppercase text-[var(--blue)] mb-4">AI Investment Planner</p>
-            <h2 className="font-serif text-4xl sm:text-5xl text-[var(--text-main)] mb-4">
-              Your thesis, in seconds
-            </h2>
-            <p className="text-[var(--text-sec)] max-w-lg mx-auto">
-              Enter your income and goals. Monetra&apos;s AI generates a complete, personalised investment strategy — not generic advice.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Input Panel */}
-            <div className="bg-[var(--background)] border border-[var(--border)] rounded-2xl p-6 space-y-4">
-              <h3 className="font-bold text-sm text-[var(--text-muted)] tracking-widest uppercase">Your Profile</h3>
-              {[
-                { l: "Monthly Income", v: "₹1,20,000" },
-                { l: "Monthly Expenses", v: "₹74,000" },
-                { l: "Investable Surplus", v: "₹46,000" },
-                { l: "Risk Profile", v: "Moderate" },
-                { l: "Primary Goal", v: "Home in 7 years" },
-              ].map((row) => (
-                <div key={row.l} className="flex items-center justify-between py-2.5 border-b border-[var(--border)] last:border-0">
-                  <span className="text-sm text-[var(--text-sec)]">{row.l}</span>
-                  <span className="font-mono text-sm font-medium text-[var(--text-main)]">{row.v}</span>
+      {/* ── Testimonials ── */}
+      <section className="relative z-10 py-24 px-6">
+        <div className="max-w-4xl mx-auto">
+          <Section>
+            <div className="grid md:grid-cols-2 gap-5">
+              {TESTIMONIALS.map((t, i) => (
+                <div key={i} className="glass-card p-7 rounded-2xl relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-[var(--glow-gold)] rounded-full blur-3xl opacity-0 group-hover:opacity-40 transition-opacity duration-700" />
+                  <div className="flex gap-0.5 mb-4 text-[var(--gold)]">
+                    {[...Array(5)].map((_, j) => (
+                      <Star key={j} className="w-3.5 h-3.5 fill-current" />
+                    ))}
+                  </div>
+                  <p className="text-[15px] text-[var(--text-main)] leading-relaxed mb-5 font-light">
+                    &ldquo;{t.quote}&rdquo;
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--gold)] to-[var(--emerald)] flex items-center justify-center text-white text-[10px] font-bold">
+                      {t.name.split(" ").map(n => n[0]).join("")}
+                    </div>
+                    <div>
+                      <p className="text-[13px] font-medium text-[var(--text-main)]">{t.name}</p>
+                      <p className="text-[11px] text-[var(--text-muted)]">{t.role}</p>
+                    </div>
+                  </div>
                 </div>
               ))}
-              <button className="w-full flex items-center justify-center gap-2 bg-[var(--gold)] text-white font-bold py-3 rounded-xl hover:opacity-90 transition-all text-sm mt-2">
-                <Sparkles size={14} />
-                Generate My Investment Thesis
-              </button>
             </div>
-
-            {/* Output Panel */}
-            <div className="bg-[var(--background)] border border-[var(--border)] rounded-2xl p-6 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-[var(--blue-dim)] to-transparent opacity-30 pointer-events-none" />
-              <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="w-2 h-2 rounded-full bg-[var(--blue)] animate-pulse" />
-                  <span className="text-[10px] font-bold tracking-widest uppercase text-[var(--blue)]">AI Thesis — Generating...</span>
-                </div>
-                <div className="space-y-3 text-sm text-[var(--text-sec)] leading-relaxed">
-                  <p><span className="font-semibold text-[var(--text-main)]">Executive Summary:</span> Based on your ₹46,000 surplus and Moderate risk profile, here is your personalised wealth strategy targeting a ₹40L home down payment by 2031.</p>
-                  <div className="border-l-2 border-[var(--blue)] pl-3">
-                    <p className="font-semibold text-[var(--text-main)] mb-1">Recommended Allocation</p>
-                    <p>• Equity MFs (SIP): ₹25,000/month — Parag Parikh Flexi Cap, HDFC Midcap</p>
-                    <p>• Gold ETF: ₹5,000/month — SBI Gold ETF</p>
-                    <p>• Liquid Fund: ₹10,000/month — Emergency buffer</p>
-                    <p>• PPF: ₹6,000/month — Tax saving + 80C</p>
-                  </div>
-                  <div className="border-l-2 border-[var(--emerald)] pl-3">
-                    <p className="font-semibold text-[var(--emerald)] mb-1">10-Year Projection</p>
-                    <p>Conservative (7% CAGR): <span className="font-mono font-bold text-[var(--text-main)]">₹78.4L</span></p>
-                    <p>Moderate (11% CAGR): <span className="font-mono font-bold text-[var(--emerald)]">₹1.04Cr</span></p>
-                    <p>Aggressive (15% CAGR): <span className="font-mono font-bold text-[var(--gold)]">₹1.38Cr</span></p>
-                  </div>
-                  <p className="text-[11px] text-[var(--text-muted)] italic border-t border-[var(--border)] pt-2">This is AI-generated financial information for educational purposes only. Not personalised investment advice. Consult a SEBI RIA before investing.</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          </Section>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-24 px-4 sm:px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-xs font-bold tracking-[0.2em] uppercase text-[var(--gold)] mb-4">User Stories</p>
-            <h2 className="font-serif text-4xl sm:text-5xl text-[var(--text-main)]">
-              Real people. Real results.
-            </h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-5">
-            {TESTIMONIALS.map((t) => (
-              <div key={t.name} className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 flex flex-col gap-4 hover:border-[var(--border-light)] hover:shadow-lg transition-all">
-                <div className="flex items-center gap-0.5">
-                  {Array.from({ length: t.stars }).map((_, i) => (
-                    <Star key={i} size={13} className="text-[var(--gold)] fill-[var(--gold)]" />
-                  ))}
-                </div>
-                <p className="text-sm text-[var(--text-sec)] leading-relaxed flex-1">
-                  &ldquo;{t.quote}&rdquo;
-                </p>
-                <div className="flex items-center gap-3 pt-2 border-t border-[var(--border)]">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--gold)] to-[var(--emerald)] flex items-center justify-center text-white text-xs font-bold">
-                    {t.avatar}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-sm text-[var(--text-main)]">{t.name}</p>
-                    <p className="text-[11px] text-[var(--text-muted)]">{t.occupation} · {t.city} · {t.plan} Plan</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ── Pricing ── */}
+      <section id="pricing" className="relative z-10 py-24 px-6">
+        <div className="max-w-4xl mx-auto">
+          <Section>
+            <div className="text-center mb-14 max-w-2xl mx-auto">
+              <h2 className="font-serif text-3xl sm:text-4xl text-[var(--text-main)] mb-3 tracking-[-0.02em]">
+                Simple, transparent pricing
+              </h2>
+              <p className="text-base text-[var(--text-sec)] font-light">
+                Start free. Upgrade when you need unlimited intelligence.
+              </p>
+            </div>
+          </Section>
 
-      {/* Pricing */}
-      <section id="pricing" className="py-24 px-4 sm:px-6 bg-[var(--card)] border-y border-[var(--border)]">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-xs font-bold tracking-[0.2em] uppercase text-[var(--gold)] mb-4">Pricing</p>
-            <h2 className="font-serif text-4xl sm:text-5xl text-[var(--text-main)] mb-4">
-              Transparent, no-nonsense pricing
-            </h2>
-            <p className="text-[var(--text-sec)] max-w-md mx-auto">Start free. Upgrade when you&apos;re ready. No surprise charges.</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-5">
-            {PLANS.map((plan) => (
-              <div
-                key={plan.name}
-                className={`relative rounded-2xl border p-7 flex flex-col gap-5 transition-all ${
-                  plan.highlight
-                    ? "border-[var(--gold)] bg-[var(--gold-glow)] shadow-xl scale-[1.02]"
-                    : "border-[var(--border)] bg-[var(--background)] hover:border-[var(--border-light)] hover:shadow-md"
-                }`}
-              >
-                {plan.badge && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[var(--gold)] text-white text-[10px] font-bold tracking-widest uppercase px-3 py-1 rounded-full">
-                    {plan.badge}
-                  </div>
-                )}
-                <div>
-                  <h3 className="font-bold text-[var(--text-main)] text-lg">{plan.name}</h3>
-                  <p className="text-xs text-[var(--text-muted)] mt-1">{plan.tagline}</p>
-                </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="font-serif text-4xl font-bold text-[var(--text-main)]">{plan.price}</span>
-                  <span className="text-sm text-[var(--text-muted)]">{plan.period}</span>
-                </div>
-                <Link
-                  href={plan.ctaHref}
-                  className={`w-full text-center font-bold text-sm py-3 rounded-xl transition-all ${
-                    plan.highlight
-                      ? "bg-[var(--gold)] text-white hover:opacity-90 hover:shadow-lg"
-                      : "bg-[var(--card)] border border-[var(--border)] text-[var(--text-main)] hover:border-[var(--border-light)] hover:shadow-sm"
-                  }`}
-                >
-                  {plan.cta}
-                </Link>
-                <ul className="space-y-2.5 flex-1">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2.5 text-sm text-[var(--text-sec)]">
-                      <Check size={14} className="text-[var(--emerald)] shrink-0 mt-0.5" />
-                      {f}
-                    </li>
-                  ))}
-                  {plan.missing.map((f) => (
-                    <li key={f} className="flex items-start gap-2.5 text-sm text-[var(--text-muted)] opacity-40 line-through">
-                      <Check size={14} className="shrink-0 mt-0.5" />
-                      {f}
+          <div className="grid md:grid-cols-2 gap-5 max-w-3xl mx-auto">
+            <Section>
+              <div className="glass-card p-7 rounded-2xl flex flex-col h-full">
+                <h3 className="text-xl font-serif text-[var(--text-main)] mb-1">Foundation</h3>
+                <p className="section-label mb-5">Free forever</p>
+                <div className="font-serif text-4xl mb-6 text-[var(--text-main)]">₹0<span className="text-sm text-[var(--text-sec)] font-sans font-normal">/mo</span></div>
+                <ul className="space-y-3 mb-8 flex-1">
+                  {["3 AI thesis generations/month", "Basic portfolio syncing", "Top 5 cities — Real Estate"].map((item) => (
+                    <li key={item} className="flex gap-2.5 text-[13px] text-[var(--text-sec)]">
+                      <Check className="w-4 h-4 text-[var(--emerald)] shrink-0 mt-0.5" />
+                      {item}
                     </li>
                   ))}
                 </ul>
+                <Link href="/signup" className="btn-ghost text-center rounded-xl">
+                  Start Free
+                </Link>
               </div>
-            ))}
+            </Section>
+
+            <Section delay={100}>
+              <div className="glass-card p-7 rounded-2xl flex flex-col relative overflow-hidden h-full border-[var(--border-light)]">
+                <div className="absolute inset-0 bg-gradient-to-br from-[var(--gold-dim)] to-[var(--blue-dim)] opacity-30 pointer-events-none" />
+                <div className="absolute top-0 right-0 px-3 py-1 bg-[var(--text-main)] text-[var(--background)] text-[9px] uppercase tracking-widest font-bold rounded-bl-xl z-10">
+                  Popular
+                </div>
+                <div className="relative z-10 flex flex-col h-full">
+                  <h3 className="text-xl font-serif text-[var(--text-main)] mb-1">Pro</h3>
+                  <p className="section-label text-[var(--gold)] mb-5">Unlimited intelligence</p>
+                  <div className="font-serif text-4xl mb-6 text-[var(--text-main)]">₹199<span className="text-sm text-[var(--text-sec)] font-sans font-normal">/mo</span></div>
+                  <ul className="space-y-3 mb-8 flex-1">
+                    {["Unlimited AI thesis & daily insights", "Live granular portfolio sync", "All India Real Estate mapping", "Priority AI processing"].map((item) => (
+                      <li key={item} className="flex gap-2.5 text-[13px] text-[var(--text-main)]">
+                        <Check className="w-4 h-4 text-[var(--gold)] shrink-0 mt-0.5" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link href="/signup?plan=pro" className="btn-primary text-center rounded-xl">
+                    Upgrade to Pro
+                  </Link>
+                </div>
+              </div>
+            </Section>
           </div>
         </div>
       </section>
 
-      {/* FAQ */}
-      <section id="faq" className="py-24 px-4 sm:px-6">
-        <div className="max-w-2xl mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-xs font-bold tracking-[0.2em] uppercase text-[var(--gold)] mb-4">FAQ</p>
-            <h2 className="font-serif text-4xl sm:text-5xl text-[var(--text-main)]">
-              Common questions
-            </h2>
-          </div>
-          <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl px-6">
-            {FAQS.map((faq) => (
-              <FAQItem key={faq.q} {...faq} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section className="py-24 px-4 sm:px-6 relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-[var(--gold-dim)] rounded-full blur-3xl opacity-40" />
-        </div>
-        <div className="max-w-2xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 mb-6">
-            <Activity size={16} className="text-[var(--emerald)]" />
-            <span className="text-sm font-medium text-[var(--text-muted)]">Join 12,000+ users building wealth smarter</span>
-          </div>
-          <h2 className="font-serif text-4xl sm:text-5xl text-[var(--text-main)] mb-5 leading-tight">
-            Your financial future starts <span className="text-[var(--gold)]">today</span>
+      {/* ── Final CTA ── */}
+      <Section className="relative z-10 py-24 px-6">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="font-serif text-4xl md:text-5xl text-[var(--text-main)] mb-6 tracking-[-0.02em]">
+            Start building wealth today
           </h2>
-          <p className="text-[var(--text-sec)] mb-10 text-lg">
-            3 minutes to onboard. Lifetime of clarity. Free forever to start.
+          <p className="text-base text-[var(--text-sec)] font-light mb-8 max-w-md mx-auto">
+            Join thousands turning their lifestyle into a strategic, intelligent wealth architecture.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link
-              href="/signup"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[var(--gold)] text-white font-bold px-10 py-4 rounded-xl hover:opacity-90 hover:shadow-xl hover:-translate-y-0.5 transition-all text-base"
-            >
-              Start Your Free Account
-              <ArrowRight size={16} />
-            </Link>
-          </div>
+          <Link
+            href="/signup"
+            className="group inline-flex items-center gap-2 btn-primary text-base !px-6 !py-3 rounded-xl"
+          >
+            <span>Create your account</span>
+            <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-300" />
+          </Link>
         </div>
-      </section>
+      </Section>
 
-      {/* Footer */}
-      <footer className="border-t border-[var(--border)] bg-[var(--card)] py-10 px-4 sm:px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-8">
-            <div>
-              <span className="font-serif text-2xl text-[var(--gold)]">Monetra</span>
-              <p className="text-xs text-[var(--text-muted)] mt-1.5 max-w-xs leading-relaxed">
-                India&apos;s first lifestyle-to-investment AI finance planner. Not a SEBI Registered Investment Advisor.
-              </p>
+      {/* ── Footer ── */}
+      <footer className="relative z-10 py-8 px-6 border-t border-[var(--border)]">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 rounded-md bg-gradient-to-br from-[var(--gold)] to-[var(--gold)]/70 flex items-center justify-center">
+              <Sparkles className="w-2.5 h-2.5 text-white" />
             </div>
-            <div className="flex flex-wrap gap-x-8 gap-y-3 text-sm text-[var(--text-sec)]">
-              <Link href="/login" className="hover:text-[var(--text-main)] transition-colors">Sign In</Link>
-              <Link href="/signup" className="hover:text-[var(--text-main)] transition-colors">Sign Up</Link>
-              <Link href="#pricing" className="hover:text-[var(--text-main)] transition-colors">Pricing</Link>
-              <Link href="/terms" className="hover:text-[var(--text-main)] transition-colors">Terms</Link>
-              <Link href="/privacy" className="hover:text-[var(--text-main)] transition-colors">Privacy</Link>
-              <Link href="/disclaimer" className="hover:text-[var(--text-main)] transition-colors">Disclaimer</Link>
-            </div>
+            <span className="font-serif text-base tracking-tight">Monetra</span>
           </div>
-          <div className="mt-8 pt-6 border-t border-[var(--border)] flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-[var(--text-muted)]">
-            <p>© 2025 Monetra. All rights reserved. India-first AI finance OS.</p>
-            <p>Investments are subject to market risk. Read all scheme documents carefully.</p>
+          <div className="flex gap-6 text-[12px] text-[var(--text-muted)]">
+            <Link href="/privacy" className="hover:text-[var(--text-main)] transition-colors duration-300">Privacy</Link>
+            <Link href="/terms" className="hover:text-[var(--text-main)] transition-colors duration-300">Terms</Link>
+            <Link href="/disclaimer" className="hover:text-[var(--text-main)] transition-colors duration-300">Disclaimer</Link>
           </div>
         </div>
       </footer>
-
-      {/* Ticker animation keyframe */}
-      <style jsx global>{`
-        @keyframes ticker {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-33.333%); }
-        }
-      `}</style>
     </div>
   );
 }

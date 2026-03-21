@@ -1,85 +1,106 @@
-import React from "react"
-import { User, Bell, Shield, CreditCard, Download, Trash2, ArrowRight } from "lucide-react"
+"use client";
 
-export const metadata = {
-  title: "Settings | Monetra",
-  description: "Manage your Monetra account preferences, profile, and subscription.",
-}
+import React, { useState } from "react"
+import { User, Bell, Shield, CreditCard, Download, Trash2, Sparkles, Check, AlertTriangle } from "lucide-react"
 
 export default function SettingsPage() {
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = () => {
+    setIsExporting(true);
+    setTimeout(() => {
+      const csvData = "Date,Type,Category,Amount\n2023-10-01,Expense,Food,800\n2023-10-05,Expense,Transport,150\n2023-11-01,Income,Salary,120000";
+      const blob = new Blob([csvData], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.setAttribute('href', url);
+      a.setAttribute('download', 'monetra_financial_data.csv');
+      a.click();
+      setIsExporting(false);
+    }, 1000);
+  };
+
+  const handleDelete = () => {
+    setIsDeleting(true);
+    setTimeout(() => {
+      // Simulate account deletion
+      window.location.href = "/signup";
+    }, 2000);
+  };
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-3xl mx-auto space-y-6 pb-10">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground mt-1">Manage your account preferences, profile, and subscription.</p>
+        <h1 className="font-serif text-2xl md:text-3xl text-[var(--text-main)]">Settings</h1>
+        <p className="text-[13px] text-[var(--text-muted)] mt-1">Manage your account, profile, and subscription.</p>
       </div>
 
-      <div className="grid md:grid-cols-4 gap-8 items-start">
-        <div className="space-y-1">
-          <nav className="flex flex-col gap-1 text-sm font-medium">
-            <a href="#profile" className="flex items-center gap-3 px-3 py-2 text-primary bg-primary/10 rounded-md">
-              <User size={18} /> Profile
+      <div className="grid md:grid-cols-4 gap-6 items-start">
+        {/* Side nav */}
+        <div className="space-y-0.5">
+          <nav className="flex flex-col gap-0.5">
+            <a href="#profile" className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-[var(--gold)] bg-[var(--gold-dim)] rounded-xl transition-all duration-300">
+              <User size={16} /> Profile
             </a>
-            <a href="#notifications" className="flex items-center gap-3 px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground rounded-md transition-colors">
-              <Bell size={18} /> Notifications
+            <a href="#notifications" className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-[var(--text-sec)] hover:text-[var(--text-main)] hover:bg-[var(--surface)] rounded-xl transition-all duration-300">
+              <Bell size={16} /> Notifications
             </a>
-            <a href="#subscription" className="flex items-center gap-3 px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground rounded-md transition-colors">
-              <CreditCard size={18} /> Subscription
+            <a href="#subscription" className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-[var(--text-sec)] hover:text-[var(--text-main)] hover:bg-[var(--surface)] rounded-xl transition-all duration-300">
+              <CreditCard size={16} /> Subscription
             </a>
-            <a href="#security" className="flex items-center gap-3 px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground rounded-md transition-colors">
-              <Shield size={18} /> Security
+            <a href="#security" className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-[var(--text-sec)] hover:text-[var(--text-main)] hover:bg-[var(--surface)] rounded-xl transition-all duration-300">
+              <Shield size={16} /> Security
             </a>
           </nav>
         </div>
 
-        <div className="md:col-span-3 space-y-8">
-          <section id="profile" className="space-y-6">
-            <div>
-              <h2 className="text-lg font-bold border-b pb-2 mb-4">Profile Information</h2>
-            </div>
+        {/* Content */}
+        <div className="md:col-span-3 space-y-6">
+          {/* Profile */}
+          <section id="profile" className="glass-card p-5">
+            <h2 className="text-sm font-semibold text-[var(--text-main)] mb-5 pb-3 border-b border-[var(--border)]">Profile Information</h2>
             
-            <div className="flex items-center gap-6">
-              <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center text-2xl font-bold text-primary">
+            <div className="flex items-center gap-5 mb-6">
+              <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[var(--gold)] to-[var(--emerald)] flex items-center justify-center text-xl font-bold text-white">
                 JD
               </div>
-              <button className="px-4 py-2 bg-muted hover:bg-muted/80 text-sm font-medium rounded-md transition-colors">
-                Change Avatar
-              </button>
+              <button className="btn-ghost text-[12px]">Change Avatar</button>
             </div>
             
-            <form className="space-y-4 max-w-lg">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">First Name</label>
-                  <input type="text" defaultValue="John" className="w-full px-3 py-2 bg-background border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+            <form className="space-y-4 max-w-md">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="section-label">First Name</label>
+                  <input type="text" defaultValue="John" className="input-premium text-[13px]" />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Last Name</label>
-                  <input type="text" defaultValue="Doe" className="w-full px-3 py-2 bg-background border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+                <div className="space-y-1.5">
+                  <label className="section-label">Last Name</label>
+                  <input type="text" defaultValue="Doe" className="input-premium text-[13px]" />
                 </div>
               </div>
               
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Email Address</label>
-                <input type="email" defaultValue="hello@johndoe.com" disabled className="w-full px-3 py-2 bg-muted border rounded-md text-sm cursor-not-allowed opacity-70" />
-                <p className="text-xs text-muted-foreground">Your email is used for login and cannot be changed here.</p>
+              <div className="space-y-1.5">
+                <label className="section-label">Email Address</label>
+                <input type="email" defaultValue="hello@johndoe.com" disabled className="input-premium text-[13px] opacity-60 cursor-not-allowed" />
+                <p className="text-[11px] text-[var(--text-muted)]">Used for login. Cannot be changed here.</p>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">City</label>
-                <select className="w-full px-3 py-2 bg-background border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary">
+              <div className="space-y-1.5">
+                <label className="section-label">City</label>
+                <select className="input-premium text-[13px]">
                   <option>Kanpur</option>
                   <option>Lucknow</option>
                   <option>Indore</option>
                   <option>Ahmedabad</option>
                   <option>Pune</option>
                 </select>
-                <p className="text-xs text-muted-foreground">Used to personalise Real Estate Explorer data.</p>
+                <p className="text-[11px] text-[var(--text-muted)]">Personalises Real Estate Explorer data.</p>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Occupation</label>
-                <select className="w-full px-3 py-2 bg-background border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary">
+              <div className="space-y-1.5">
+                <label className="section-label">Occupation</label>
+                <select className="input-premium text-[13px]">
                   <option>Salaried Professional</option>
                   <option>Freelancer</option>
                   <option>Business Owner</option>
@@ -87,75 +108,94 @@ export default function SettingsPage() {
                 </select>
               </div>
 
-              <div className="pt-4 border-t mt-6">
-                <button type="button" className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md text-sm font-medium transition-colors">
-                  Save Changes
-                </button>
+              <div className="pt-3 border-t border-[var(--border)]">
+                <button type="button" className="btn-primary text-[12px]">Save Changes</button>
               </div>
             </form>
           </section>
 
-          <section id="subscription" className="space-y-6 pt-8">
-            <div>
-              <h2 className="text-lg font-bold border-b pb-2 mb-4">Subscription Plan</h2>
-            </div>
+          {/* Subscription */}
+          <section id="subscription" className="glass-card p-5">
+            <h2 className="text-sm font-semibold text-[var(--text-main)] mb-5 pb-3 border-b border-[var(--border)]">Subscription Plan</h2>
             
-            <div className="bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-950/20 dark:to-blue-950/20 border border-indigo-200 dark:border-indigo-900/30 rounded-xl p-6">
-              <div className="flex justify-between items-start mb-6">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-bold px-2 py-0.5 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 rounded uppercase tracking-wider">Current Plan</span>
-                  </div>
-                  <h3 className="text-2xl font-bold text-foreground flex items-baseline gap-1">
-                    Free
-                  </h3>
-                  <p className="text-sm text-muted-foreground mt-1">3 AI generations left this month.</p>
-                </div>
+            <div className="relative overflow-hidden rounded-xl border border-[var(--border)] bg-gradient-to-br from-[var(--blue-dim)] to-[var(--gold-dim)] p-5">
+              <div className="mb-5">
+                <span className="section-label text-[var(--blue)]">Current Plan</span>
+                <h3 className="text-xl font-serif font-bold text-[var(--text-main)] mt-1">Free</h3>
+                <p className="text-[12px] text-[var(--text-muted)] mt-1">3 AI generations left this month.</p>
               </div>
               
-              <div className="bg-white dark:bg-card border rounded-lg p-5">
+              <div className="glass-card p-4">
                 <div className="flex justify-between items-center mb-4">
-                  <div className="font-semibold">Upgrade to <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">Pro</span></div>
-                  <div className="font-bold text-lg">₹199<span className="text-sm text-muted-foreground font-normal">/mo</span></div>
+                  <div className="font-semibold text-[13px] text-[var(--text-main)]">Upgrade to <span className="gradient-text from-[var(--gold)] to-[var(--blue)]">Pro</span></div>
+                  <div className="font-mono text-base font-bold text-[var(--text-main)]">₹199<span className="text-[11px] text-[var(--text-muted)] font-normal font-sans">/mo</span></div>
                 </div>
-                <ul className="space-y-2 text-sm text-muted-foreground mb-6">
+                <ul className="space-y-2 text-[12px] text-[var(--text-sec)] mb-5">
                   <li className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" /> Unlimited AI Theses & Spending Audits
+                    <Check size={14} className="text-[var(--emerald)] shrink-0" /> Unlimited AI Theses & Spending Audits
                   </li>
                   <li className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" /> Unlimited portfolio holdings tracked
+                    <Check size={14} className="text-[var(--emerald)] shrink-0" /> Unlimited portfolio holdings tracked
                   </li>
                   <li className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" /> Daily AI Insights enabled
+                    <Check size={14} className="text-[var(--emerald)] shrink-0" /> Daily AI Insights enabled
                   </li>
                 </ul>
-                <button className="w-full py-2 bg-foreground text-background hover:bg-foreground/90 rounded-md text-sm font-medium transition-colors">
+                <button className="w-full btn-primary text-[12px] text-center flex items-center justify-center gap-1.5">
+                  <Sparkles size={13} />
                   Upgrade Plan
                 </button>
               </div>
             </div>
           </section>
           
-          <section id="data" className="space-y-6 pt-8">
-            <div>
-              <h2 className="text-lg font-bold border-b pb-2 mb-4">Data & Privacy</h2>
-            </div>
+          {/* Data & Privacy */}
+          <section id="data" className="glass-card p-5">
+            <h2 className="text-sm font-semibold text-[var(--text-main)] mb-5 pb-3 border-b border-[var(--border)]">Data & Privacy</h2>
             
-            <div className="space-y-4">
-              <div className="flex justify-between items-center p-4 border rounded-lg hover:border-foreground/20 transition-colors">
+            <div className="space-y-3">
+              <div className="flex justify-between items-center p-4 rounded-xl border border-[var(--border)] hover:border-[var(--border-light)] hover:bg-[var(--surface)] transition-all duration-300 group">
                 <div>
-                  <h4 className="font-medium text-sm flex items-center gap-2"><Download size={16} className="text-muted-foreground" /> Export Data</h4>
-                  <p className="text-xs text-muted-foreground">Download all your financial data and AI theses as CSV.</p>
+                  <h4 className="text-[13px] font-medium text-[var(--text-main)] flex items-center gap-2">
+                    <Download size={14} className="text-[var(--text-muted)]" /> Export Data
+                  </h4>
+                  <p className="text-[11px] text-[var(--text-muted)]">Download all financial data and AI theses as CSV.</p>
                 </div>
-                <button className="px-3 py-1.5 border hover:bg-muted rounded-md text-xs font-medium transition-colors">Export</button>
+                <button 
+                  onClick={handleExport}
+                  disabled={isExporting}
+                  className="btn-ghost text-[11px] !px-3 !py-1.5 flex items-center gap-2"
+                >
+                  {isExporting ? "Exporting..." : "Export"}
+                </button>
               </div>
               
-              <div className="flex justify-between items-center p-4 border border-red-100 dark:border-red-900/30 bg-red-50/50 dark:bg-red-950/20 rounded-lg">
+              <div className={`flex justify-between items-center p-4 rounded-xl transition-all duration-300 group ${showDeleteConfirm ? 'border border-[var(--red)] bg-[var(--red)]/10' : 'border border-[var(--red)]/15 bg-[var(--red)]/5'}`}>
                 <div>
-                  <h4 className="font-medium text-sm text-red-600 dark:text-red-400 flex items-center gap-2"><Trash2 size={16} /> Delete Account</h4>
-                  <p className="text-xs text-red-600/80 dark:text-red-400/80">Permanently delete your account and all financial data.</p>
+                  <h4 className="text-[13px] font-medium text-[var(--red)] flex items-center gap-2">
+                    {showDeleteConfirm ? <AlertTriangle size={14} /> : <Trash2 size={14} />} 
+                    {showDeleteConfirm ? "Are you absolutely sure?" : "Delete Account"}
+                  </h4>
+                  <p className="text-[11px] text-[var(--red)]/70">
+                    {showDeleteConfirm 
+                      ? "This action cannot be undone. All data will be wiped." 
+                      : "Permanently delete your account and all financial data."}
+                  </p>
                 </div>
-                <button className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-md text-xs font-medium transition-colors">Delete</button>
+                {showDeleteConfirm ? (
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setShowDeleteConfirm(false)} className="px-3 py-1.5 bg-transparent border border-[var(--red)]/30 text-[var(--red)] hover:bg-[var(--red)]/10 rounded-xl text-[11px] font-semibold transition-all">Cancel</button>
+                    <button 
+                      onClick={handleDelete}
+                      disabled={isDeleting}
+                      className="px-3 py-1.5 bg-[var(--red)] hover:bg-[var(--red)]/90 text-white rounded-xl text-[11px] font-semibold transition-all flex items-center gap-2"
+                    >
+                      {isDeleting ? "Deleting..." : "Confirm Delete"}
+                    </button>
+                  </div>
+                ) : (
+                  <button onClick={() => setShowDeleteConfirm(true)} className="px-3 py-1.5 bg-[var(--red)] hover:bg-[var(--red)]/90 text-white rounded-xl text-[11px] font-semibold transition-all duration-300">Delete</button>
+                )}
               </div>
             </div>
           </section>

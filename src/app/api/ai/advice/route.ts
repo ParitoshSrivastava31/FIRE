@@ -1,82 +1,106 @@
-import { NextResponse } from 'next/server'
-import { openai, AI_MODEL } from '@/lib/openai/client'
 import { createClient } from '@/lib/supabase/server'
+import { routeToModel } from '@/lib/ai/model-router'
+import { callWithCache } from '@/lib/ai/cached-client'
+import { checkAndDeductBudget } from '@/lib/ai/budget-manager'
 
-export const maxDuration = 60
+export async function POST(request: Request) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return new Response('Unauthorized', { status: 401 })
 
-export async function POST(req: Request) {
-  try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+  const body = await request.json()
+  // Support both legacy `message` + `conversationHistory` and new `query` + `portfolio_context`
+  const query = body.query || body.message
+  const portfolio_context = body.portfolio_context
+  const history = body.conversationHistory || []
 
-    const body = await req.json()
-    const { message, conversationHistory = [] } = body
+  if (!query?.trim()) return new Response('Query required', { status: 400 })
 
-    if (!message) {
-      return NextResponse.json({ error: 'Message is required' }, { status: 400 })
-    }
-
-    // Fetch user profile for context
-    const profile = user ? (await supabase
-      .from('users')
-      .select('full_name, monthly_income, risk_profile, city, occupation')
-      .eq('id', user.id)
-      .single()).data : null
-
-    const systemPrompt = `You are Monetra's AI Finance Assistant — a friendly, expert financial planner for India.
-You are chatting with ${profile?.full_name || 'a user'} who has a ${profile?.risk_profile || 'moderate'} risk profile and lives in ${profile?.city || 'India'}.
-Their monthly income is approximately ₹${profile?.monthly_income ? profile.monthly_income.toLocaleString('en-IN') : 'unknown'}.
-
-You specialise in:
-- Mutual funds, SIPs, and India-specific investment instruments (PPF, NPS, SGB, ELSS)
-- Tax planning under the Indian Income Tax Act (80C, 80CCD, LTCG)
-- Stock market analysis for NSE/BSE
-- Personal finance and budgeting for Indian households
-- Real estate investment in Indian cities
-
-Keep responses concise (max 250 words). Be conversational but specific.
-Always end advice responses with: *Not SEBI-registered advice. Consult a qualified RIA.*`
-
-    const messages = [
-      { role: 'system' as const, content: systemPrompt },
-      ...conversationHistory.map((m: { role: 'user' | 'assistant'; content: string }) => ({
-        role: m.role,
-        content: m.content,
-      })),
-      { role: 'user' as const, content: message },
-    ]
-
-    const completion = await openai.chat.completions.create({
-      model: AI_MODEL,
-      messages,
-      stream: true,
-      max_tokens: 500,
-      temperature: 0.7,
-    })
-
-    const encoder = new TextEncoder()
-    const stream = new ReadableStream({
-      async start(controller) {
-        try {
-          for await (const chunk of completion) {
-            const content = chunk.choices[0]?.delta?.content || ''
-            if (content) controller.enqueue(encoder.encode(content))
-          }
-        } finally {
-          controller.close()
-        }
-      },
-    })
-
-    return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Transfer-Encoding': 'chunked',
-        'Cache-Control': 'no-cache',
-      },
-    })
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : 'Unknown error'
-    return NextResponse.json({ error: msg }, { status: 500 })
+  // Check and deduct from user's monthly AI budget
+  const budgetResult = await checkAndDeductBudget(user.id, 'query')
+  if (!budgetResult.allowed) {
+    return Response.json({
+      error: 'monthly_limit_reached',
+      message: `You've used all ${budgetResult.limit} AI queries this month. Resets on ${budgetResult.reset_date}.`,
+      upgrade_available: budgetResult.tier === 'free',
+    }, { status: 429 })
   }
+
+  const routing = routeToModel('user_query', query)
+
+  let histString = ''
+  if (history.length > 0) {
+    histString = "\nPREVIOUS CONVERSATION HISTORY:\n" + history.map((m: any) => `${m.role}: ${m.content}`).join("\n") + "\n"
+  }
+
+  // Build contextual user message — compact, not the entire DB
+  const userMessage = buildUserQueryPrompt(query, portfolio_context, user.id) + histString
+
+  const streamResponse = await callWithCache({
+    userMessage,
+    model: routing.model,
+    maxTokens: routing.maxTokens,
+    stream: true,
+  })
+
+  // OpenAI streaming via standard Web Streams API logic
+  const encoder = new TextEncoder()
+  const readable = new ReadableStream({
+    async start(controller) {
+      let totalOutput = ''
+      
+      try {
+        // @ts-ignore
+        for await (const chunk of streamResponse) {
+          const content = chunk.choices[0]?.delta?.content || ''
+          if (content) {
+            totalOutput += content
+            controller.enqueue(encoder.encode(content)) // Return plain text chunks compatible with existing UI if necessary, or the exact data structure if needed.
+            // The existing ui seems to expect plain text from stream based on "content" so leaving it simple, or SSE.
+            // Wait, existing UI `advice/route.ts` returned plain text chunked 'Transfer-Encoding': 'chunked'
+          }
+        }
+      } catch (e) {
+        console.error("Stream error", e)
+      } finally {
+        logAiCall(user.id, routing.model, query.length, totalOutput.length)
+        controller.close()
+      }
+    }
+  })
+
+  return new Response(readable, {
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Transfer-Encoding': 'chunked',
+      'Cache-Control': 'no-cache',
+    }
+  })
+}
+
+function buildUserQueryPrompt(query: string, portfolioContext: any, userId: string): string {
+  const portfolioSnippet = portfolioContext
+    ? `\nUSER'S PORTFOLIO CONTEXT:\n${JSON.stringify(portfolioContext, null, 0).slice(0, 800)}\n`
+    : ''
+
+  return `USER QUERY:${portfolioSnippet}
+Question: ${query}
+
+Answer specifically and concisely using India-specific context. Reference the user's actual portfolio data if provided.`
+}
+
+async function logAiCall(userId: string, model: string, inputChars: number, outputChars: number) {
+  // Estimate tokens (rough: 4 chars per token)
+  const estInputTokens = Math.ceil(inputChars / 4)
+  const estOutputTokens = Math.ceil(outputChars / 4)
+
+  const supabase = await createClient()
+  await supabase.from('ai_usage_log').insert({
+    user_id: userId,
+    call_type: 'user_query',
+    model_used: model,
+    estimated_input_tokens: estInputTokens,
+    estimated_output_tokens: estOutputTokens,
+    created_at: new Date().toISOString(),
+  })
 }

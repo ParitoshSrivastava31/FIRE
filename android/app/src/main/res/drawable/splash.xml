@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Light background to match app theme (#FAFAFA) -->
+    <item>
+        <color android:color="#FAFAFA"/>
+    </item>
+
+    <!--
+      Centered Monetra wordmark in gold.
+      Replace @drawable/monetra_wordmark_gold with your actual vector drawable.
+      Until you have the asset, this will just show the background color — that's fine.
+    -->
+    <!--
+    <item
+        android:gravity="center"
+        android:width="200dp"
+        android:height="52dp">
+        <bitmap
+            android:gravity="center"
+            android:src="@drawable/monetra_wordmark_gold"/>
+    </item>
+    -->
+</layer-list>

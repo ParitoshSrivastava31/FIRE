@@ -1,208 +1,200 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { ArrowRight, User } from "lucide-react";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useOnboardingStore } from '@/store/useOnboardingStore';
+import { haptic } from '@/lib/native/haptics';
+import { ArrowRight } from 'lucide-react';
 
 const OCCUPATIONS = [
-  { id: "salaried", label: "Salaried", icon: "💼", desc: "Regular monthly income" },
-  { id: "freelancer", label: "Freelancer / Gig", icon: "💻", desc: "Variable income" },
-  { id: "business", label: "Business Owner", icon: "🏪", desc: "Running my own business" },
-  { id: "student", label: "Student", icon: "🎓", desc: "Building the habit early" },
+  { id: 'salaried', label: 'Salaried', emoji: '🏢', desc: 'Working at a company' },
+  { id: 'freelancer', label: 'Freelancer', emoji: '💻', desc: 'Self-employed / consultant' },
+  { id: 'business', label: 'Business Owner', emoji: '🏪', desc: 'Running my own business' },
+  { id: 'student', label: 'Student', emoji: '🎓', desc: 'Studying / intern' },
 ];
 
-const INDIAN_CITIES = [
-  "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Kolkata", "Pune",
-  "Ahmedabad", "Lucknow", "Jaipur", "Kanpur", "Nagpur", "Indore", "Bhopal",
-  "Surat", "Agra", "Varanasi", "Patna", "Kochi", "Coimbatore", "Chandigarh",
-  "Bhubaneswar", "Visakhapatnam", "Noida", "Gurgaon", "Ghaziabad", "Faridabad",
-];
+// ── Screen definitions ────────────────────────────────────────────────────────
+// Step-1 page handles screens 1–4 (Personal info)
+// Step-2 handles screens 5–6 (Income & Expenses)
+// Step-3 handles screens 7–8 (Goals)
+// Step-4 handles screens 9–10 (Risk + Celebration)
 
 export default function OnboardingStep1() {
   const router = useRouter();
-  const [form, setForm] = useState({
-    fullName: "",
-    dob: "",
-    city: "",
-    occupation: "",
-  });
-  const [citySearch, setCitySearch] = useState("");
-  const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const { step, fullName, city, occupation, setField, nextStep, setStep } = useOnboardingStore();
+  const [localName, setLocalName] = useState(fullName);
+  const [localCity, setLocalCity] = useState(city);
+  const [direction, setDirection] = useState<'forward' | 'back'>('forward');
 
-  const filteredCities = INDIAN_CITIES.filter((c) =>
-    c.toLowerCase().includes(citySearch.toLowerCase())
-  );
+  // On mount, go to the correct sub-screen based on store step
+  useEffect(() => {
+    if (step < 1) setStep(1);
+    if (step > 4) router.push('/onboarding/step-2');
+  }, []);
 
-  const handleCitySelect = (city: string) => {
-    setForm({ ...form, city });
-    setCitySearch(city);
-    setShowCityDropdown(false);
+  const advance = async () => {
+    await haptic.medium();
+    setDirection('forward');
+    if (step === 4 && !occupation) return;
+    nextStep();
+    if (step === 4) router.push('/onboarding/step-2');
   };
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const animClass = direction === 'forward' ? 'animate-slideInRight' : 'animate-slideInLeft';
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-    
-    // Name validation
-    if (!form.fullName.trim()) {
-      newErrors.fullName = "Name is required";
-    } else if (form.fullName.length < 2 || !/^[a-zA-Z\s]*$/.test(form.fullName)) {
-      newErrors.fullName = "Please enter a valid name (letters only)";
-    }
-
-    // DOB validation (Age 18 - 80)
-    if (!form.dob) {
-      newErrors.dob = "Date of birth is required";
-    } else {
-      const birthDate = new Date(form.dob);
-      const today = new Date();
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const m = today.getMonth() - birthDate.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-      }
-      if (age < 18) newErrors.dob = "You must be at least 18 years old to use Monetra.";
-      if (age > 100) newErrors.dob = "Please enter a valid date of birth.";
-    }
-
-    // City validation
-    if (!INDIAN_CITIES.includes(form.city) && form.city.length > 0) {
-      newErrors.city = "Please select a city from the dropdown.";
-    } else if (!form.city) {
-      newErrors.city = "City is required";
-    }
-
-    // Occupation
-    if (!form.occupation) {
-      newErrors.occupation = "Please select your occupation.";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleNext = () => {
-    if (!validateForm()) return;
-    // Save to sessionStorage / Zustand store
-    sessionStorage.setItem("onboarding_step1", JSON.stringify(form));
-    router.push("/onboarding/step-2");
-  };
-
-  return (
-    <div className="space-y-8 animate-fadeUp">
-      <div>
-        <p className="text-[var(--gold)] text-xs font-bold tracking-widest uppercase mb-2">Step 1 — Personal Profile</p>
-        <h1 className="font-serif text-3xl sm:text-4xl text-[var(--text-main)] leading-tight">
-          Tell us about yourself
-        </h1>
-        <p className="text-[var(--text-sec)] mt-2 text-sm leading-relaxed">
-          This helps Monetra personalise your AI investment thesis and real estate recommendations.
-        </p>
+  // ── Screen 1: Name ──────────────────────────────────────────────────────────
+  if (step === 1) {
+    return (
+      <div className={`flex flex-col min-h-full px-6 pt-8 pb-8 ${animClass}`}>
+        <div className="flex-1 space-y-3">
+          <p className="text-5xl mb-2">👋</p>
+          <h2 className="font-serif text-3xl text-[var(--text-main)] leading-tight">What&apos;s your name?</h2>
+          <p className="text-sm text-[var(--text-muted)]">We&apos;ll personalise your experience</p>
+        </div>
+        <div className="space-y-6 pt-8">
+          <input
+            type="text"
+            placeholder="Your full name"
+            className="input-premium !py-4 !text-lg"
+            value={localName}
+            onChange={(e) => setLocalName(e.target.value)}
+            onBlur={() => setField('fullName', localName)}
+            autoFocus
+            autoComplete="name"
+          />
+          <button
+            onClick={advance}
+            disabled={!localName.trim()}
+            className="w-full btn-primary !py-4 flex items-center justify-center gap-2 text-base disabled:opacity-40 disabled:pointer-events-none"
+          >
+            Continue <ArrowRight size={18} />
+          </button>
+        </div>
       </div>
+    );
+  }
 
-      <div className="space-y-5">
-        {/* Full Name */}
-        <div className="space-y-1.5">
-          <label className="text-sm font-semibold text-[var(--text-main)]">Full Name</label>
-          <input
-            type="text"
-            placeholder="Priya Sharma"
-            className={`w-full h-12 px-4 rounded-xl border bg-[var(--card)] text-sm text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/20 transition-all ${errors.fullName ? 'border-[var(--red)]' : 'border-[var(--border)]'}`}
-            value={form.fullName}
-            onChange={(e) => {
-              setForm({ ...form, fullName: e.target.value });
-              if (errors.fullName) setErrors({ ...errors, fullName: "" });
-            }}
-          />
-          {errors.fullName && <p className="text-xs text-[var(--red)]">{errors.fullName}</p>}
+  // ── Screen 2: Date of Birth ─────────────────────────────────────────────────
+  if (step === 2) {
+    return (
+      <div className={`flex flex-col min-h-full px-6 pt-8 pb-8 ${animClass}`}>
+        <div className="flex-1 space-y-3">
+          <p className="text-5xl mb-2">🎂</p>
+          <h2 className="font-serif text-3xl text-[var(--text-main)] leading-tight">
+            Hi {fullName.split(' ')[0]}!<br />How old are you?
+          </h2>
+          <p className="text-sm text-[var(--text-muted)]">Helps us tailor your retirement & goal timelines</p>
         </div>
-
-        {/* Date of Birth */}
-        <div className="space-y-1.5">
-          <label className="text-sm font-semibold text-[var(--text-main)]">Date of Birth</label>
-          <p className="text-xs text-[var(--text-muted)]">Used for age-based financial benchmarking</p>
-          <input
-            type="date"
-            className={`w-full h-12 px-4 rounded-xl border bg-[var(--card)] text-sm text-[var(--text-main)] focus:outline-none focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/20 transition-all ${errors.dob ? 'border-[var(--red)]' : 'border-[var(--border)]'}`}
-            value={form.dob}
-            onChange={(e) => {
-              setForm({ ...form, dob: e.target.value });
-              if (errors.dob) setErrors({ ...errors, dob: "" });
-            }}
-          />
-          {errors.dob && <p className="text-xs text-[var(--red)]">{errors.dob}</p>}
-        </div>
-
-        {/* City */}
-        <div className="space-y-1.5 relative">
-          <label className="text-sm font-semibold text-[var(--text-main)]">City</label>
-          <p className="text-xs text-[var(--text-muted)]">Used for real estate locality data</p>
-          <input
-            type="text"
-            placeholder="Search your city..."
-            className={`w-full h-12 px-4 rounded-xl border bg-[var(--card)] text-sm text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/20 transition-all ${errors.city ? 'border-[var(--red)]' : 'border-[var(--border)]'}`}
-            value={citySearch}
-            onChange={(e) => {
-              setCitySearch(e.target.value);
-              setForm({ ...form, city: "" });
-              setShowCityDropdown(true);
-              if (errors.city) setErrors({ ...errors, city: "" });
-            }}
-            onFocus={() => setShowCityDropdown(true)}
-            onBlur={() => setTimeout(() => setShowCityDropdown(false), 150)}
-          />
-          {errors.city && <p className="text-xs text-[var(--red)]">{errors.city}</p>}
-          {showCityDropdown && citySearch && filteredCities.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl z-50 max-h-48 overflow-y-auto">
-              {filteredCities.slice(0, 8).map((city) => (
-                <button
-                  key={city}
-                  className="w-full text-left px-4 py-3 text-sm text-[var(--text-main)] hover:bg-[var(--card-hover)] transition-colors border-b border-[var(--border)] last:border-0"
-                  onClick={() => handleCitySelect(city)}
-                >
-                  {city}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Occupation */}
-        <div className="space-y-2">
-          <label className="text-sm font-semibold text-[var(--text-main)]">Occupation</label>
-          <p className="text-xs text-[var(--text-muted)]">Affects which investment instruments are prioritised</p>
-          <div className="grid grid-cols-2 gap-3">
-            {OCCUPATIONS.map((occ) => (
-              <button
-                key={occ.id}
-                onClick={() => {
-                  setForm({ ...form, occupation: occ.id });
-                  if (errors.occupation) setErrors({ ...errors, occupation: "" });
-                }}
-                className={`flex flex-col items-start gap-1.5 p-4 rounded-xl border text-left transition-all ${
-                  form.occupation === occ.id
-                    ? "border-[var(--gold)] bg-[var(--gold-glow)] shadow-sm"
-                    : "border-[var(--border)] bg-[var(--card)] hover:border-[var(--border-light)]"
-                }`}
-              >
-                <span className="text-xl">{occ.icon}</span>
-                <span className="font-semibold text-sm text-[var(--text-main)]">{occ.label}</span>
-                <span className="text-[11px] text-[var(--text-muted)]">{occ.desc}</span>
-              </button>
-            ))}
+        <div className="space-y-6 pt-8">
+          <div className="space-y-1.5">
+            <label className="section-label">Date of Birth</label>
+            <input
+              type="date"
+              className="input-premium !py-4"
+              defaultValue={useOnboardingStore.getState().dateOfBirth}
+              onChange={(e) => setField('dateOfBirth', e.target.value)}
+              max={new Date().toISOString().split('T')[0]}
+            />
           </div>
-          {errors.occupation && <p className="text-xs text-[var(--red)]">{errors.occupation}</p>}
+          <button onClick={advance} className="w-full btn-primary !py-4 flex items-center justify-center gap-2 text-base">
+            Continue <ArrowRight size={18} />
+          </button>
         </div>
       </div>
+    );
+  }
 
-      <button
-        onClick={handleNext}
-        className="w-full h-12 bg-[var(--gold)] text-white font-bold text-sm rounded-xl hover:opacity-90 hover:shadow-lg hover:-translate-y-[1px] transition-all flex items-center justify-center gap-2"
-      >
-        Continue to Income & Expenses
-        <ArrowRight size={15} />
-      </button>
-    </div>
-  );
+  // ── Screen 3: City ──────────────────────────────────────────────────────────
+  if (step === 3) {
+    const CITIES = ['Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Chennai', 'Pune', 'Kolkata', 'Ahmedabad', 'Surat', 'Jaipur', 'Lucknow', 'Chandigarh', 'Indore', 'Bhopal', 'Nagpur', 'Noida', 'Gurgaon', 'Kochi', 'Coimbatore', 'Other'];
+    const [search, setSearch] = useState('');
+    const filtered = CITIES.filter(c => c.toLowerCase().includes(search.toLowerCase()));
+
+    return (
+      <div className={`flex flex-col min-h-full px-6 pt-8 pb-8 ${animClass}`}>
+        <div className="space-y-3 mb-6">
+          <p className="text-5xl mb-2">🏙️</p>
+          <h2 className="font-serif text-3xl text-[var(--text-main)] leading-tight">Which city do you live in?</h2>
+          <p className="text-sm text-[var(--text-muted)]">We localise real estate data and cost of living to your city</p>
+        </div>
+        <input
+          type="text"
+          placeholder="Search city..."
+          className="input-premium !py-3.5 mb-3"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <div className="flex-1 overflow-y-auto hide-scrollbar grid grid-cols-2 gap-2 content-start pb-4">
+          {filtered.map((c) => (
+            <button
+              key={c}
+              onClick={async () => {
+                await haptic.light();
+                setField('city', c);
+                setLocalCity(c);
+              }}
+              className={`py-3 px-4 rounded-xl text-sm font-medium text-left transition-all duration-200 active:scale-95 ${
+                localCity === c || city === c
+                  ? 'bg-[var(--gold)] text-white shadow-sm'
+                  : 'bg-[var(--surface)] text-[var(--text-main)] hover:bg-[var(--surface-hover)] border border-[var(--border)]'
+              }`}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={advance}
+          disabled={!city && !localCity}
+          className="w-full btn-primary !py-4 flex items-center justify-center gap-2 text-base mt-4 disabled:opacity-40 disabled:pointer-events-none"
+        >
+          Continue <ArrowRight size={18} />
+        </button>
+      </div>
+    );
+  }
+
+  // ── Screen 4: Occupation ────────────────────────────────────────────────────
+  if (step === 4) {
+    return (
+      <div className={`flex flex-col min-h-full px-6 pt-8 pb-8 ${animClass}`}>
+        <div className="space-y-3 mb-8">
+          <p className="text-5xl mb-2">💼</p>
+          <h2 className="font-serif text-3xl text-[var(--text-main)] leading-tight">What do you do for work?</h2>
+          <p className="text-sm text-[var(--text-muted)]">This shapes your tax strategy and income patterns</p>
+        </div>
+        <div className="flex-1 grid grid-cols-2 gap-3">
+          {OCCUPATIONS.map((occ) => (
+            <button
+              key={occ.id}
+              onClick={async () => {
+                await haptic.light();
+                setField('occupation', occ.id);
+              }}
+              className={`flex flex-col items-start p-4 rounded-2xl border-2 transition-all duration-200 active:scale-95 text-left ${
+                occupation === occ.id
+                  ? 'border-[var(--gold)] bg-[var(--gold-dim)]'
+                  : 'border-[var(--border)] bg-[var(--surface)] hover:border-[var(--border-light)]'
+              }`}
+            >
+              <span className="text-3xl mb-2">{occ.emoji}</span>
+              <span className={`text-sm font-semibold block ${occupation === occ.id ? 'text-[var(--gold)]' : 'text-[var(--text-main)]'}`}>
+                {occ.label}
+              </span>
+              <span className="text-xs text-[var(--text-muted)] mt-0.5">{occ.desc}</span>
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={advance}
+          disabled={!occupation}
+          className="w-full btn-primary !py-4 flex items-center justify-center gap-2 text-base mt-6 disabled:opacity-40 disabled:pointer-events-none"
+        >
+          Continue <ArrowRight size={18} />
+        </button>
+      </div>
+    );
+  }
+
+  return null;
 }

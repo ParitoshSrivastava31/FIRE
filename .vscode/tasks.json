@@ -1,0 +1,103 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start Next.js Dev Server",
+      "type": "shell",
+      "command": "npm run dev",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": { "regexp": "." },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "Starting",
+          "endsPattern": "Local:"
+        }
+      }
+    },
+    {
+      "label": "Run on Android Device (Live Reload)",
+      "type": "shell",
+      "command": "npm run dev:android",
+      "dependsOn": "Start Next.js Dev Server",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Build for Android (Production)",
+      "type": "shell",
+      "command": "npm run build:mobile",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Sync Capacitor (after build)",
+      "type": "shell",
+      "command": "npm run sync:android",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ADB: List Connected Devices",
+      "type": "shell",
+      "command": "C:\\android-tools\\platform-tools\\adb.exe devices",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ADB: View App Logcat",
+      "type": "shell",
+      "command": "C:\\android-tools\\platform-tools\\adb.exe logcat -s Capacitor:V chromium:V WebView:V",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Build Debug APK",
+      "type": "shell",
+      "command": "cd android && .\\gradlew assembleDebug",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Install Debug APK via ADB",
+      "type": "shell",
+      "command": "C:\\android-tools\\platform-tools\\adb.exe install -r android\\app\\build\\outputs\\apk\\debug\\app-debug.apk",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

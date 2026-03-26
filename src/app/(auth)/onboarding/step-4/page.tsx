@@ -1,284 +1,234 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
-import { ArrowLeft, ArrowRight, Sparkles, Check } from "lucide-react";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useOnboardingStore } from '@/store/useOnboardingStore';
+import { haptic } from '@/lib/native/haptics';
+import { ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
-const QUESTIONS = [
+const RISK_QUESTIONS = [
   {
-    id: "q1",
-    question: "If your investment dropped 20% in a month, what would you do?",
+    id: 'q1',
+    question: 'Your portfolio drops 20% in a month. What do you do?',
     options: [
-      { label: "Sell everything — I can't handle losses", value: "conservative" },
-      { label: "Worry, but wait and watch for a quarter", value: "moderate" },
-      { label: "Buy more — it's a discount!", value: "aggressive" },
+      { label: 'Sell everything immediately', value: 0 },
+      { label: 'Sell some to reduce risk', value: 1 },
+      { label: 'Hold and wait it out', value: 2 },
+      { label: 'Buy more — it\'s a discount', value: 3 },
     ],
   },
   {
-    id: "q2",
-    question: "What is your primary investment horizon?",
+    id: 'q2',
+    question: 'How long can you leave this money invested?',
     options: [
-      { label: "Less than 3 years", value: "conservative" },
-      { label: "3–7 years", value: "moderate" },
-      { label: "7+ years", value: "aggressive" },
+      { label: 'Less than 2 years', value: 0 },
+      { label: '2–5 years', value: 1 },
+      { label: '5–10 years', value: 2 },
+      { label: 'More than 10 years', value: 3 },
     ],
   },
   {
-    id: "q3",
-    question: "What % of your surplus can you lock away for 5+ years?",
+    id: 'q3',
+    question: 'You get a ₹2L bonus. You invest it in:',
     options: [
-      { label: "Less than 20%", value: "conservative" },
-      { label: "20–50%", value: "moderate" },
-      { label: "50%+", value: "aggressive" },
+      { label: 'Fixed Deposit (safe, low returns)', value: 0 },
+      { label: 'Balance mutual funds (mix)', value: 1 },
+      { label: 'Large-cap equity funds', value: 2 },
+      { label: 'Small/mid-cap or international funds', value: 3 },
     ],
   },
   {
-    id: "q4",
-    question: "Have you invested in equities/mutual funds before?",
+    id: 'q4',
+    question: 'What\'s your primary financial goal right now?',
     options: [
-      { label: "No, I'm a complete beginner", value: "conservative" },
-      { label: "Yes, a little — SIP or a few stocks", value: "moderate" },
-      { label: "Yes, actively — I track markets regularly", value: "aggressive" },
+      { label: 'Preserve what I have', value: 0 },
+      { label: 'Steady, predictable growth', value: 1 },
+      { label: 'Grow wealth over time', value: 2 },
+      { label: 'Maximum growth, I can handle swings', value: 3 },
     ],
   },
   {
-    id: "q5",
-    question: "Do you prefer guaranteed returns or higher potential returns?",
+    id: 'q5',
+    question: 'How much of your income can you invest monthly without stress?',
     options: [
-      { label: "Guaranteed — FD/RD safety first", value: "conservative" },
-      { label: "Mix — some guaranteed, some growth", value: "moderate" },
-      { label: "Higher potential — I understand volatility", value: "aggressive" },
+      { label: 'Less than 10%', value: 0 },
+      { label: '10–20%', value: 1 },
+      { label: '20–30%', value: 2 },
+      { label: 'More than 30%', value: 3 },
     ],
   },
 ];
 
-const INSTRUMENTS = [
-  { id: "mf", emoji: "📊", label: "Mutual Funds / SIPs" },
-  { id: "stocks", emoji: "📈", label: "Direct Stocks (NSE/BSE)" },
-  { id: "gold", emoji: "🥇", label: "Gold (SGB / Gold ETF)" },
-  { id: "fd", emoji: "🏦", label: "Fixed Deposits / RDs" },
-  { id: "ppf", emoji: "🏛️", label: "PPF / NPS" },
-  { id: "realestate", emoji: "🏘️", label: "Real Estate" },
-  { id: "us", emoji: "🇺🇸", label: "US Stocks (via INDmoney/Vested)" },
-  { id: "crypto", emoji: "₿", label: "Crypto (High risk)" },
-];
-
-function computeRiskProfile(answers: Record<string, string>): "conservative" | "moderate" | "aggressive" {
-  const counts = { conservative: 0, moderate: 0, aggressive: 0 };
-  Object.values(answers).forEach((v) => {
-    counts[v as keyof typeof counts]++;
-  });
-  if (counts.aggressive >= 3) return "aggressive";
-  if (counts.conservative >= 3) return "conservative";
-  return "moderate";
-}
-
-const PROFILE_META = {
-  conservative: {
-    emoji: "🛡️",
-    color: "text-[var(--blue)]",
-    bg: "bg-[var(--blue-dim)] border-[var(--blue)]/20",
-    label: "Conservative",
-    desc: "Capital preservation first. FDs, debt MFs, and PPF dominate your portfolio with limited equity exposure.",
-  },
-  moderate: {
-    emoji: "⚖️",
-    color: "text-[var(--gold)]",
-    bg: "bg-[var(--gold-glow)] border-[var(--gold)]/20",
-    label: "Moderate",
-    desc: "Balanced approach. 60% equity, 30% debt, 10% gold. Long-term wealth creation with controlled risk.",
-  },
-  aggressive: {
-    emoji: "🚀",
-    color: "text-[var(--emerald)]",
-    bg: "bg-[var(--emerald-dim)] border-[var(--emerald)]/20",
-    label: "Aggressive",
-    desc: "Growth-first. 80%+ equity across small-cap, mid-cap, and international funds. Requires long horizon.",
-  },
+const RISK_LABELS = {
+  conservative: { label: 'Conservative', emoji: '🛡️', color: 'var(--blue)', desc: 'You prioritise safety. We\'ll lean on debt funds, FDs, and Sovereign Gold Bonds.' },
+  moderate: { label: 'Moderate', emoji: '⚖️', color: 'var(--emerald)', desc: 'Balanced approach. Mix of equity and debt — steady growth with managed risk.' },
+  aggressive: { label: 'Aggressive', emoji: '🚀', color: 'var(--gold)', desc: 'Growth-first mindset. Heavy equity, small/mid-caps, and international funds.' },
 };
 
+// Step-4 covers micro-screens 9–10: Risk profile + Celebration
 export default function OnboardingStep4() {
   const router = useRouter();
+  const {
+    step, riskAnswers, riskProfile, fullName, monthlyIncome, expenses,
+    selectedGoalTypes, addRiskAnswer, setStep, nextStep
+  } = useOnboardingStore();
+
+  const [currentQ, setCurrentQ] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
   const supabase = createClient();
 
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [selectedInstruments, setSelectedInstruments] = useState<string[]>(["mf", "fd"]);
-  const [cryptoAcknowledged, setCryptoAcknowledged] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  useEffect(() => {
+    if (step < 9) setStep(9);
+  }, []);
 
-  const answeredCount = Object.keys(answers).length;
-  const allAnswered = answeredCount === QUESTIONS.length;
-  const riskProfile = allAnswered ? computeRiskProfile(answers) : null;
-  const profileMeta = riskProfile ? PROFILE_META[riskProfile] : null;
+  const surplus = (() => {
+    const income = parseInt(monthlyIncome) || 0;
+    const totalExp = expenses.reduce((s, e) => s + (parseInt(e.amount) || 0), 0);
+    return income - totalExp;
+  })();
 
-  const toggleInstrument = (id: string) => {
-    if (id === "crypto" && !cryptoAcknowledged) return;
-    setSelectedInstruments((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
-  };
-
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
-    try {
-      const step1 = JSON.parse(sessionStorage.getItem("onboarding_step1") || "{}");
-      const step2 = JSON.parse(sessionStorage.getItem("onboarding_step2") || "{}");
-      const step3 = JSON.parse(sessionStorage.getItem("onboarding_step3") || "{}");
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from("users").upsert({
-          id: user.id,
-          full_name: step1.fullName,
-          date_of_birth: step1.dob,
-          city: step1.city,
-          occupation: step1.occupation,
-          monthly_income: step2.income,
-          risk_profile: riskProfile,
-          onboarding_complete: true,
-        });
-      }
-
-      sessionStorage.removeItem("onboarding_step1");
-      sessionStorage.removeItem("onboarding_step2");
-      sessionStorage.removeItem("onboarding_step3");
-
-      router.push("/dashboard");
-    } catch {
-      setIsSubmitting(false);
+  const handleAnswer = async (value: number) => {
+    await haptic.light();
+    addRiskAnswer(value);
+    if (currentQ < RISK_QUESTIONS.length - 1) {
+      setCurrentQ(currentQ + 1);
+    } else {
+      // All questions answered — move to celebration screen
+      nextStep(); // step becomes 10
+      setStep(10);
     }
   };
 
-  return (
-    <div className="space-y-8 animate-fadeUp">
-      <div>
-        <p className="text-[var(--gold)] text-xs font-bold tracking-widest uppercase mb-2">Step 4 — Risk Profile</p>
-        <h1 className="font-serif text-3xl sm:text-4xl text-[var(--text-main)] leading-tight">
-          How do you think about risk?
-        </h1>
-        <p className="text-[var(--text-sec)] mt-2 text-sm">
-          Answer 5 quick questions — your AI thesis is calibrated to your risk profile.
-        </p>
-      </div>
+  const handleComplete = async () => {
+    await haptic.success();
+    setIsSaving(true);
 
-      {/* Risk Quiz */}
-      <div className="space-y-5">
-        {QUESTIONS.map((q, idx) => (
-          <div key={q.id} className={`bg-[var(--card)] border rounded-xl p-5 space-y-3 transition-all ${answers[q.id] ? "border-[var(--gold)]/40" : "border-[var(--border)]"}`}>
-            <p className="font-semibold text-sm text-[var(--text-main)]">
-              <span className="text-[var(--text-muted)] font-mono mr-2">{idx + 1}.</span>
-              {q.question}
-            </p>
-            <div className="space-y-2">
-              {q.options.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => setAnswers((prev) => ({ ...prev, [q.id]: opt.value }))}
-                  className={`w-full text-left px-4 py-3 rounded-xl border text-sm transition-all ${
-                    answers[q.id] === opt.value
-                      ? "border-[var(--gold)] bg-[var(--gold-glow)] text-[var(--text-main)] font-medium"
-                      : "border-[var(--border)] text-[var(--text-sec)] hover:border-[var(--border-light)] hover:bg-[var(--card-hover)]"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${answers[q.id] === opt.value ? "border-[var(--gold)] bg-[var(--gold)]" : "border-[var(--border)]"}`}>
-                      {answers[q.id] === opt.value && <Check size={9} className="text-white" strokeWidth={3} />}
-                    </div>
-                    {opt.label}
-                  </div>
-                </button>
-              ))}
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from('users').upsert({
+          id: user.id,
+          onboarding_complete: true,
+          full_name: fullName,
+          monthly_income: parseInt(monthlyIncome) || 0,
+          risk_profile: riskProfile,
+          updated_at: new Date().toISOString(),
+        });
+      }
+    } catch (err) {
+      console.error('Failed to save onboarding:', err);
+    }
+
+    setIsSaving(false);
+    router.push('/dashboard');
+  };
+
+  // ── Screen 9: Risk Questions (one at a time) ────────────────────────────────
+  if (step === 9) {
+    const question = RISK_QUESTIONS[currentQ];
+    const progress = `${currentQ + 1} / ${RISK_QUESTIONS.length}`;
+
+    return (
+      <div className="flex flex-col min-h-full px-6 pt-6 pb-8 animate-slideInRight">
+        <div className="space-y-2 mb-8">
+          <p className="section-label text-[var(--gold)]">{progress} — Risk Profile</p>
+          <h2 className="font-serif text-2xl text-[var(--text-main)] leading-tight">{question.question}</h2>
+        </div>
+
+        <div className="flex-1 space-y-3">
+          {question.options.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => handleAnswer(opt.value)}
+              className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-[var(--border)] bg-[var(--surface)] text-left transition-all duration-200 active:scale-[0.99] hover:border-[var(--gold)]/40 hover:bg-[var(--gold-dim)]"
+            >
+              <div className="w-6 h-6 rounded-full border-2 border-[var(--border)] flex-shrink-0" />
+              <span className="text-sm font-medium text-[var(--text-main)]">{opt.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Screen 10: Celebration ──────────────────────────────────────────────────
+  if (step === 10 && riskProfile) {
+    const profileData = RISK_LABELS[riskProfile];
+
+    return (
+      <div className="flex flex-col min-h-full px-6 pt-8 pb-8 animate-slideInRight">
+        <div className="flex-1 space-y-6">
+          {/* Header */}
+          <div className="text-center space-y-2">
+            <div className="w-16 h-16 rounded-2xl bg-[var(--gold-dim)] flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 size={32} className="text-[var(--gold)]" />
             </div>
+            <h2 className="font-serif text-3xl text-[var(--text-main)]">
+              {fullName.split(' ')[0]}&apos;s<br />Financial Snapshot
+            </h2>
+            <p className="text-sm text-[var(--text-muted)]">Your personalised wealth plan is ready</p>
           </div>
-        ))}
-      </div>
 
-      {/* Risk Profile Result */}
-      {riskProfile && profileMeta && (
-        <div className={`border-2 rounded-2xl p-5 flex items-start gap-4 ${profileMeta.bg}`}>
-          <span className="text-3xl">{profileMeta.emoji}</span>
-          <div>
-            <p className={`font-bold text-lg ${profileMeta.color}`}>{profileMeta.label} Investor</p>
-            <p className="text-sm text-[var(--text-sec)] mt-1 leading-relaxed">{profileMeta.desc}</p>
-          </div>
-        </div>
-      )}
-
-      {/* Investment Preferences */}
-      <div className="space-y-3">
-        <div>
-          <h2 className="font-bold text-sm text-[var(--text-main)] mb-1">Investment Preferences</h2>
-          <p className="text-xs text-[var(--text-muted)]">Which instruments are you comfortable with?</p>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-          {INSTRUMENTS.map((inst) => {
-            const isSelected = selectedInstruments.includes(inst.id);
-            const isCrypto = inst.id === "crypto";
-            return (
-              <div key={inst.id} className="relative">
-                <button
-                  onClick={() => toggleInstrument(inst.id)}
-                  disabled={isCrypto && !cryptoAcknowledged}
-                  className={`w-full flex flex-col items-center gap-1.5 p-3 rounded-xl border text-center transition-all ${
-                    isSelected
-                      ? "border-[var(--gold)] bg-[var(--gold-glow)]"
-                      : "border-[var(--border)] bg-[var(--card)] hover:border-[var(--border-light)]"
-                  } ${isCrypto && !cryptoAcknowledged ? "opacity-40 cursor-not-allowed" : ""}`}
-                >
-                  <span className="text-xl">{inst.emoji}</span>
-                  <span className="text-[11px] font-semibold text-[var(--text-sec)] leading-tight">{inst.label}</span>
-                </button>
-                {isCrypto && (
-                  <div className="mt-1">
-                    <label className="flex items-center gap-1.5 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={cryptoAcknowledged}
-                        onChange={(e) => {
-                          setCryptoAcknowledged(e.target.checked);
-                          if (!e.target.checked) {
-                            setSelectedInstruments((prev) => prev.filter((i) => i !== "crypto"));
-                          }
-                        }}
-                        className="w-3 h-3 accent-[var(--gold)]"
-                      />
-                      <span className="text-[10px] text-[var(--text-muted)]">I understand high risk</span>
-                    </label>
-                  </div>
-                )}
+          {/* Summary cards */}
+          <div className="space-y-3">
+            {surplus > 0 && (
+              <div className="glass-card p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-[var(--text-muted)]">Monthly Investable</p>
+                  <p className="font-mono text-xl font-bold text-[var(--emerald)] mt-0.5">
+                    ₹{surplus.toLocaleString('en-IN')}
+                  </p>
+                </div>
+                <span className="text-3xl">💰</span>
               </div>
-            );
-          })}
-        </div>
-      </div>
+            )}
 
-      <div className="flex gap-3">
+            <div className="glass-card p-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-[var(--text-muted)]">Risk Profile</p>
+                <p className="text-lg font-bold mt-0.5" style={{ color: profileData.color }}>
+                  {profileData.emoji} {profileData.label}
+                </p>
+                <p className="text-xs text-[var(--text-muted)] mt-1 max-w-[200px] leading-relaxed">
+                  {profileData.desc}
+                </p>
+              </div>
+            </div>
+
+            {selectedGoalTypes.length > 0 && (
+              <div className="glass-card p-4">
+                <p className="text-xs text-[var(--text-muted)] mb-2">Your Goals</p>
+                <div className="flex flex-wrap gap-2">
+                  {selectedGoalTypes.map(g => (
+                    <span key={g} className="px-3 py-1 rounded-full bg-[var(--gold-dim)] text-[var(--gold)] text-xs font-medium capitalize">
+                      {g.replace(/_/g, ' ')}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         <button
-          onClick={() => router.back()}
-          className="h-12 px-6 border border-[var(--border)] bg-[var(--card)] text-[var(--text-main)] font-semibold text-sm rounded-xl hover:border-[var(--border-light)] transition-all flex items-center gap-2"
+          onClick={handleComplete}
+          disabled={isSaving}
+          className="w-full btn-primary !py-4 flex items-center justify-center gap-2 text-base mt-6 disabled:opacity-60"
         >
-          <ArrowLeft size={15} />
-          Back
-        </button>
-        <button
-          onClick={handleSubmit}
-          disabled={!allAnswered || isSubmitting}
-          className="flex-1 h-12 bg-[var(--gold)] text-white font-bold text-sm rounded-xl hover:opacity-90 hover:shadow-lg hover:-translate-y-[1px] transition-all disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center gap-2"
-        >
-          {isSubmitting ? (
-            <>
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              Generating your thesis...
-            </>
+          {isSaving ? (
+            <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Saving...</>
           ) : (
-            <>
-              <Sparkles size={15} />
-              Complete Setup & Go to Dashboard
-            </>
+            <><Sparkles size={18} /> Generate My Plan</>
           )}
         </button>
       </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center justify-center min-h-full">
+      <div className="w-8 h-8 border-2 border-[var(--gold)] border-t-transparent rounded-full animate-spin" />
     </div>
   );
 }

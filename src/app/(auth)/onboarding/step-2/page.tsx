@@ -1,251 +1,154 @@
-"use client";
+'use client';
 
-import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { ArrowRight, ArrowLeft, Plus, Minus, TrendingUp } from "lucide-react";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useOnboardingStore } from '@/store/useOnboardingStore';
+import { haptic } from '@/lib/native/haptics';
+import { ArrowRight, IndianRupee, Minus, Plus } from 'lucide-react';
 
-const EXPENSE_CATEGORIES = [
-  { key: "food", emoji: "🍽️", label: "Food & Dining", default: 8000 },
-  { key: "housing", emoji: "🏠", label: "Housing / Rent / EMI", default: 15000 },
-  { key: "transport", emoji: "🚗", label: "Transport", default: 4000 },
-  { key: "entertainment", emoji: "🎬", label: "Entertainment / OTT", default: 2500 },
-  { key: "healthcare", emoji: "🏥", label: "Healthcare & Insurance", default: 2000 },
-  { key: "shopping", emoji: "👗", label: "Shopping", default: 3500 },
-  { key: "loans", emoji: "💳", label: "Loans / EMIs", default: 0 },
-  { key: "education", emoji: "📚", label: "Education", default: 1500 },
-  { key: "savings", emoji: "💰", label: "Existing Savings / SIPs", default: 5000 },
-];
-
-function formatINR(val: number) {
-  return `₹${val.toLocaleString("en-IN")}`;
+function formatCurrency(val: string): string {
+  const n = parseInt(val.replace(/,/g, ''), 10);
+  if (isNaN(n)) return '';
+  return n.toLocaleString('en-IN');
 }
 
-function getSavingsRateColor(rate: number) {
-  if (rate < 10) return "bg-[var(--red)]";
-  if (rate < 25) return "bg-[var(--gold)]";
-  return "bg-[var(--emerald)]";
-}
-
-function getSavingsRateLabel(rate: number) {
-  if (rate < 10) return "Critical — Too low";
-  if (rate < 25) return "Fair — Room to improve";
-  return "Healthy — Great work!";
-}
-
+// Step-2 handles micro-screens 5–6: Income & Expenses
 export default function OnboardingStep2() {
   const router = useRouter();
-  const [income, setIncome] = useState(120000);
-  const [otherIncome, setOtherIncome] = useState(0);
-  const [isIrregular, setIsIrregular] = useState(false);
+  const { step, monthlyIncome, expenses, fullName, setField, nextStep, setStep } = useOnboardingStore();
 
-  const [expenses, setExpenses] = useState<Record<string, number>>(
-    Object.fromEntries(EXPENSE_CATEGORIES.map((c) => [c.key, c.default]))
-  );
+  useEffect(() => {
+    if (step < 5) setStep(5);
+    if (step > 6) router.push('/onboarding/step-3');
+  }, []);
 
-  const totalExpenses = useMemo(() => Object.values(expenses).reduce((s, v) => s + v, 0), [expenses]);
-  const totalIncome = income + otherIncome;
-  const surplus = totalIncome - totalExpenses;
-  const savingsRate = totalIncome > 0 ? Math.round((surplus / totalIncome) * 100) : 0;
-
-  const handleExpenseChange = (key: string, delta: number) => {
-    setExpenses((prev) => ({ ...prev, [key]: Math.max(0, (prev[key] || 0) + delta) }));
+  const advance = async () => {
+    await haptic.medium();
+    nextStep();
+    if (step === 6) router.push('/onboarding/step-3');
   };
 
-  const handleExpenseInput = (key: string, value: string) => {
-    const num = parseInt(value.replace(/[^0-9]/g, "")) || 0;
-    setExpenses((prev) => ({ ...prev, [key]: num }));
-  };
+  // ── Screen 5: Monthly Income ────────────────────────────────────────────────
+  if (step === 5) {
+    const [rawInput, setRawInput] = useState(monthlyIncome.replace(/,/g, ''));
 
-  const [error, setError] = useState<string | null>(null);
+    const handleChange = (val: string) => {
+      const digits = val.replace(/\D/g, '');
+      setRawInput(digits);
+      setField('monthlyIncome', digits);
+    };
 
-  const validateForm = () => {
-    if (totalIncome <= 0) {
-      setError("Please enter a valid monthly income greater than ₹0.");
-      return false;
-    }
-    
-    // Check reasonable maximum bounds (e.g. max 10 Crore / mo) to avoid schema overflow
-    const maxBound = 100000000;
-    if (income > maxBound || otherIncome > maxBound) {
-      setError("Income amount exceeds maximum allowed limit.");
-      return false;
-    }
-
-    const hasExcessiveExpense = Object.values(expenses).some(v => v > maxBound);
-    if (hasExcessiveExpense) {
-      setError("One or more expenses exceed the maximum allowed limit.");
-      return false;
-    }
-
-    if (totalExpenses > totalIncome * 5) {
-       setError("Expenses are highly disproportionate to income. Please review them.");
-       return false;
-    }
-
-    setError(null);
-    return true;
-  };
-
-  const handleNext = () => {
-    if (!validateForm()) return;
-    sessionStorage.setItem(
-      "onboarding_step2",
-      JSON.stringify({ income, otherIncome, isIrregular, expenses })
-    );
-    router.push("/onboarding/step-3");
-  };
-
-  return (
-    <div className="space-y-8 animate-fadeUp">
-      <div>
-        <p className="text-[var(--gold)] text-xs font-bold tracking-widest uppercase mb-2">Step 2 — Income & Expenses</p>
-        <h1 className="font-serif text-3xl sm:text-4xl text-[var(--text-main)] leading-tight">
-          What does your money look like?
-        </h1>
-        <p className="text-[var(--text-sec)] mt-2 text-sm">
-          Your investable surplus is calculated live as you fill this in.
-        </p>
-      </div>
-
-      {/* Income Section */}
-      <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 space-y-5">
-        <h2 className="font-bold text-[var(--text-main)] text-sm uppercase tracking-widest">Income</h2>
-
-        <div className="space-y-1.5">
-          <label className="text-sm font-semibold text-[var(--text-main)]">Monthly Take-Home (post-tax)</label>
+    return (
+      <div className="flex flex-col min-h-full px-6 pt-8 pb-8 animate-slideInRight">
+        <div className="flex-1 space-y-3">
+          <p className="text-5xl mb-2">💰</p>
+          <h2 className="font-serif text-3xl text-[var(--text-main)] leading-tight">
+            What&apos;s your take-home salary?
+          </h2>
+          <p className="text-sm text-[var(--text-muted)]">Monthly, after taxes. This stays private and secure.</p>
+        </div>
+        <div className="space-y-6 pt-8">
           <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm font-mono">₹</span>
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-1 text-[var(--gold)] font-semibold">
+              <IndianRupee size={18} />
+            </div>
             <input
               type="number"
-              className="w-full h-12 pl-8 pr-4 rounded-xl border border-[var(--border)] bg-[var(--background)] text-sm font-mono text-[var(--text-main)] focus:outline-none focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/20 transition-all"
-              value={income}
-              onChange={(e) => setIncome(parseInt(e.target.value) || 0)}
-              min={0}
+              inputMode="numeric"
+              placeholder="0"
+              className="input-premium !py-5 !pl-10 !text-2xl !font-mono font-bold"
+              value={rawInput}
+              onChange={(e) => handleChange(e.target.value)}
+              autoFocus
             />
           </div>
-        </div>
-
-        <div className="space-y-1.5">
-          <label className="text-sm font-semibold text-[var(--text-main)]">Other Income (rent, freelance, dividends)</label>
-          <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm font-mono">₹</span>
-            <input
-              type="number"
-              className="w-full h-12 pl-8 pr-4 rounded-xl border border-[var(--border)] bg-[var(--background)] text-sm font-mono text-[var(--text-main)] focus:outline-none focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/20 transition-all"
-              value={otherIncome}
-              onChange={(e) => setOtherIncome(parseInt(e.target.value) || 0)}
-              min={0}
-            />
-          </div>
-        </div>
-
-        <label className="flex items-center gap-3 cursor-pointer group">
-          <div
-            onClick={() => setIsIrregular(!isIrregular)}
-            className={`w-10 h-6 rounded-full transition-colors relative ${isIrregular ? "bg-[var(--gold)]" : "bg-[var(--border)]"}`}
+          {rawInput && parseInt(rawInput) > 0 && (
+            <div className="glass-card p-4 text-center animate-fadeUp">
+              <p className="text-xs text-[var(--text-muted)] mb-1">Annual CTC (est.)</p>
+              <p className="font-mono text-xl font-bold text-[var(--emerald)]">
+                ₹{formatCurrency(String(parseInt(rawInput) * 12))}
+              </p>
+            </div>
+          )}
+          <button
+            onClick={advance}
+            disabled={!monthlyIncome || parseInt(monthlyIncome) < 1000}
+            className="w-full btn-primary !py-4 flex items-center justify-center gap-2 text-base disabled:opacity-40 disabled:pointer-events-none"
           >
-            <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-all shadow-sm ${isIrregular ? "left-5" : "left-1"}`} />
-          </div>
-          <span className="text-sm text-[var(--text-sec)] group-hover:text-[var(--text-main)] transition-colors">
-            My income is irregular (freelance / business)
-          </span>
-        </label>
+            Continue <ArrowRight size={18} />
+          </button>
+        </div>
       </div>
+    );
+  }
 
-      {/* Expenses Section */}
-      <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="font-bold text-[var(--text-main)] text-sm uppercase tracking-widest">Monthly Expenses</h2>
-          <span className="text-xs text-[var(--text-muted)]">Adjust to your actual spend</span>
+  // ── Screen 6: Expenses ──────────────────────────────────────────────────────
+  if (step === 6) {
+    const income = parseInt(monthlyIncome) || 50000;
+
+    const [localExpenses, setLocalExpenses] = useState(
+      expenses.map(e => ({ ...e, amount: e.amount || '' }))
+    );
+
+    const totalExpenses = localExpenses.reduce((sum, e) => sum + (parseInt(e.amount) || 0), 0);
+    const surplus = income - totalExpenses;
+
+    const updateExpense = async (id: string, amount: string) => {
+      const updated = localExpenses.map(e => e.id === id ? { ...e, amount } : e);
+      setLocalExpenses(updated);
+      setField('expenses', updated);
+    };
+
+    return (
+      <div className="flex flex-col min-h-full px-6 pt-8 pb-8 animate-slideInRight">
+        <div className="space-y-2 mb-6">
+          <p className="text-5xl mb-2">📊</p>
+          <h2 className="font-serif text-3xl text-[var(--text-main)] leading-tight">Monthly expenses?</h2>
+          <p className="text-sm text-[var(--text-muted)]">Rough estimates are fine — adjust anytime later</p>
         </div>
 
-        <div className="space-y-3">
-          {EXPENSE_CATEGORIES.map((cat) => (
-            <div key={cat.key} className="flex items-center gap-3">
-              <span className="text-xl w-8 shrink-0">{cat.emoji}</span>
-              <span className="text-sm text-[var(--text-sec)] flex-1 min-w-0 truncate">{cat.label}</span>
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => handleExpenseChange(cat.key, -1000)}
-                  className="w-7 h-7 rounded-lg border border-[var(--border)] flex items-center justify-center text-[var(--text-muted)] hover:bg-[var(--card-hover)] hover:text-[var(--text-main)] transition-all"
-                >
-                  <Minus size={12} />
-                </button>
+        {/* Live surplus tracker */}
+        <div className={`glass-card p-4 mb-5 flex items-center justify-between ${surplus > 0 ? 'border-[var(--emerald)]/30' : 'border-[var(--red)]/30'}`}>
+          <div>
+            <p className="text-xs text-[var(--text-muted)]">Monthly Investable Surplus</p>
+            <p className={`font-mono text-2xl font-bold ${surplus > 0 ? 'text-[var(--emerald)]' : 'text-red-500'}`}>
+              ₹{Math.abs(surplus).toLocaleString('en-IN')}
+            </p>
+          </div>
+          <p className="text-xs text-[var(--text-muted)] text-right">
+            ₹{income.toLocaleString('en-IN')}<br/>
+            <span className="text-[var(--text-sec)]">income</span>
+          </p>
+        </div>
+
+        <div className="flex-1 space-y-3 overflow-y-auto hide-scrollbar">
+          {localExpenses.map((expense) => (
+            <div key={expense.id} className="flex items-center gap-3 glass-card p-3.5">
+              <span className="text-sm font-medium text-[var(--text-main)] flex-1 min-w-0 truncate">{expense.category}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-[var(--text-muted)] font-mono">₹</span>
                 <input
-                  type="text"
-                  className="w-24 h-8 text-center rounded-lg border border-[var(--border)] bg-[var(--background)] text-xs font-mono text-[var(--text-main)] focus:outline-none focus:border-[var(--gold)] transition-all"
-                  value={`₹${(expenses[cat.key] || 0).toLocaleString("en-IN")}`}
-                  onChange={(e) => handleExpenseInput(cat.key, e.target.value)}
+                  type="number"
+                  inputMode="numeric"
+                  placeholder="0"
+                  className="w-24 text-right py-1.5 px-2 rounded-lg bg-[var(--surface)] border border-[var(--border)] text-sm font-mono focus:outline-none focus:border-[var(--gold)] transition-colors"
+                  value={expense.amount}
+                  onChange={(e) => updateExpense(expense.id, e.target.value)}
                 />
-                <button
-                  onClick={() => handleExpenseChange(cat.key, 1000)}
-                  className="w-7 h-7 rounded-lg border border-[var(--border)] flex items-center justify-center text-[var(--text-muted)] hover:bg-[var(--card-hover)] hover:text-[var(--text-main)] transition-all"
-                >
-                  <Plus size={12} />
-                </button>
               </div>
             </div>
           ))}
         </div>
-      </div>
 
-      {/* Live Summary */}
-      <div className={`rounded-2xl border-2 p-6 space-y-4 ${surplus >= 0 ? "border-[var(--emerald)]/30 bg-[var(--emerald-dim)]" : "border-[var(--red)]/30 bg-[var(--red)]/8"}`}>
-        <div className="flex items-center gap-2">
-          <TrendingUp size={16} className={surplus >= 0 ? "text-[var(--emerald)]" : "text-[var(--red)]"} />
-          <span className="font-bold text-sm text-[var(--text-main)]">Live Surplus Calculation</span>
-        </div>
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <p className="text-[10px] font-bold tracking-widest uppercase text-[var(--text-muted)] mb-1">Total Income</p>
-            <p className="font-mono text-lg font-bold text-[var(--text-main)]">{formatINR(totalIncome)}</p>
-          </div>
-          <div>
-            <p className="text-[10px] font-bold tracking-widest uppercase text-[var(--text-muted)] mb-1">Total Expenses</p>
-            <p className="font-mono text-lg font-bold text-[var(--text-main)]">{formatINR(totalExpenses)}</p>
-          </div>
-          <div>
-            <p className="text-[10px] font-bold tracking-widest uppercase text-[var(--text-muted)] mb-1">Monthly Surplus</p>
-            <p className={`font-mono text-lg font-bold ${surplus >= 0 ? "text-[var(--emerald)]" : "text-[var(--red)]"}`}>
-              {surplus >= 0 ? "+" : ""}{formatINR(surplus)}
-            </p>
-          </div>
-        </div>
-        {/* Savings Rate Bar */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-[var(--text-muted)] font-medium">Savings Rate</span>
-            <span className={`font-bold ${savingsRate >= 25 ? "text-[var(--emerald)]" : savingsRate >= 10 ? "text-[var(--gold)]" : "text-[var(--red)]"}`}>
-              {savingsRate}% — {getSavingsRateLabel(savingsRate)}
-            </span>
-          </div>
-          <div className="w-full h-2 bg-[var(--border)] rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-500 ${getSavingsRateColor(savingsRate)}`}
-              style={{ width: `${Math.min(100, Math.max(0, savingsRate))}%` }}
-            />
-          </div>
-        </div>
-      </div>
-      
-      {error && <div className="p-4 bg-[var(--red)]/10 border border-[var(--red)]/30 rounded-xl text-[var(--red)] text-sm font-medium animate-shake">{error}</div>}
-
-      <div className="flex gap-3">
         <button
-          onClick={() => router.back()}
-          className="h-12 px-6 border border-[var(--border)] bg-[var(--card)] text-[var(--text-main)] font-semibold text-sm rounded-xl hover:border-[var(--border-light)] transition-all flex items-center gap-2"
+          onClick={advance}
+          className="w-full btn-primary !py-4 flex items-center justify-center gap-2 text-base mt-5"
         >
-          <ArrowLeft size={15} />
-          Back
-        </button>
-        <button
-          onClick={handleNext}
-          className="flex-1 h-12 bg-[var(--gold)] text-white font-bold text-sm rounded-xl hover:opacity-90 hover:shadow-lg hover:-translate-y-[1px] transition-all flex items-center justify-center gap-2"
-        >
-          Continue to Goals
-          <ArrowRight size={15} />
+          Continue <ArrowRight size={18} />
         </button>
       </div>
-    </div>
-  );
+    );
+  }
+
+  return null;
 }

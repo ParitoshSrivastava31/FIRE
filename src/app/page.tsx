@@ -22,37 +22,37 @@ const FEATURES = [
     icon: <Sparkles className="w-5 h-5" />,
     title: "AI Investment Thesis",
     description:
-      "A conversational intelligence that builds a precise SIP roadmap, projecting decades of wealth from your lifestyle.",
+      "A personalized Indian asset playbook including ELSS, NPS, and SGBs. Replaces a ₹15,000/year personal RIA.",
   },
   {
     icon: <Wallet className="w-5 h-5" />,
     title: "Lifestyle-to-Wealth Bridge",
     description:
-      "Every habit has a future value. We translate your daily spending into potential net worth over decades.",
+      "We calculate the real future cost of your daily spending. Redirect ₹3,000 in dining to an SIP and add ₹8.4L in 7 years.",
   },
   {
     icon: <Map className="w-5 h-5" />,
     title: "Real Estate Explorer",
     description:
-      "Deep-dive into Tier 1, 2, and 3 cities across India. Discover yields and granular appreciation data.",
+      "A unique moat: Deep-dive into Tier 2 and 3 cities (Kanpur, Lucknow, Agra). Discover yields and granular appreciation data.",
   },
   {
     icon: <Activity className="w-5 h-5" />,
     title: "Live Portfolio Harmony",
     description:
-      "Equities, Mutual Funds, NPS, and Gold. A single, breathing dashboard tracking your true net worth.",
+      "A single dashboard for Zerodha stocks, Kuvera Mutual Funds, and Gold ETFs. Track your true net worth in real-time.",
   },
   {
     icon: <Target className="w-5 h-5" />,
-    title: "Dream Orchestration",
+    title: "Tax Optimization Playbooks",
     description:
-      "Set milestones and watch the AI dynamically adjust your allocation to keep you on track.",
+      "Tailored strategies for salaried and freelancers. Maximize Section 80C and 80CCD (NPS) benefits automatically.",
   },
   {
     icon: <Zap className="w-5 h-5" />,
-    title: "Passive Income Hub",
+    title: "Zero-Garbage Data Integrity",
     description:
-      "Automated dividend strategies, REITs, and P2P lending curation for when your money works without you.",
+      "We catch manual errors upfront with strict Indian demographic limits, ensuring AI outputs are realistic and trustworthy.",
   },
 ];
 
@@ -164,21 +164,22 @@ export default function LandingPage() {
         <h1
           className={`font-serif text-5xl sm:text-6xl md:text-7xl lg:text-[80px] text-[var(--text-main)] leading-[1.08] tracking-[-0.02em] max-w-4xl mx-auto text-balance transition-all duration-700 delay-100 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
         >
-          Where your lifestyle
+          Turn your lifestyle
           <br />
-          meets{" "}
+          into a{" "}
           <span className="relative inline-block">
             <span className="relative z-10 italic gradient-text from-[var(--gold)] via-[var(--blue)] to-[var(--emerald)]">
-              infinite potential
+              wealth strategy
             </span>
             <div className="absolute -inset-2 blur-2xl opacity-15 bg-gradient-to-r from-[var(--gold)] via-[var(--blue)] to-[var(--emerald)] z-0 animate-breathe" />
           </span>
         </h1>
 
         <p
-          className={`mt-6 text-lg text-[var(--text-sec)] max-w-xl mx-auto leading-relaxed font-light transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+          className={`mt-6 text-lg text-[var(--text-sec)] max-w-2xl mx-auto leading-relaxed font-light transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
         >
-          A deeply sensory, AI-driven financial planner that translates your habits into a living architecture of growing wealth.
+          India&apos;s first AI-native, lifestyle-to-investment operating system.
+          We bridge the gap between <span className="text-[var(--text-main)] font-medium underline decoration-[var(--red)]/30">passive expense tracking</span> and <span className="text-[var(--text-main)] font-medium underline decoration-[var(--emerald)]/30">active wealth creation</span>.
         </p>
 
         {/* Central action bar */}
@@ -258,25 +259,90 @@ export default function LandingPage() {
                   </div>
                 </div>
                 <div className="md:col-span-2 relative min-h-[180px] flex items-end">
-                  <div className="w-full h-full absolute inset-0 flex items-end justify-between px-3 pb-3 gap-1">
-                    {[35, 50, 40, 65, 58, 80, 74, 95, 88, 100].map((h, i) => (
-                      <div key={i} className="flex-1 rounded-t-md relative overflow-hidden" style={{ height: `${h}%` }}>
-                        <div
-                          className="absolute inset-0 rounded-t-md"
-                          style={{
-                            background: `linear-gradient(to top, var(--blue-dim), var(--blue))`,
-                            opacity: 0.15 + (h / 200),
-                          }}
-                        />
+                   <div className="w-full h-full absolute inset-0 flex flex-col justify-center gap-4 px-4">
+                      <div className="flex justify-between items-center glass-panel p-3 rounded-lg border-l-4 border-l-[var(--emerald)]">
+                        <div>
+                          <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">Lifestyle Adjustment</p>
+                          <p className="text-sm font-semibold text-[var(--text-main)]">Reduce Zomato by 30%</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] text-[var(--emerald)] font-bold">+₹3,500 surplus</p>
+                        </div>
                       </div>
-                    ))}
-                  </div>
+                      <div className="flex justify-between items-center glass-panel p-3 rounded-lg border-l-4 border-l-[var(--gold)]">
+                        <div>
+                          <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">Wealth Impact</p>
+                          <p className="text-sm font-semibold text-[var(--text-main)]">Parag Parikh Flexi Cap SIP</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] text-[var(--gold)] font-bold">₹8.4L in 7 Years</p>
+                        </div>
+                      </div>
+                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </Section>
+
+      {/* ── New: The Monetra Moat ── */}
+      <section className="relative z-10 py-24 px-6 border-y border-[var(--border)] bg-[var(--surface)]">
+        <div className="max-w-5xl mx-auto">
+          <Section>
+            <div className="grid md:grid-cols-2 gap-16 items-center">
+              <div>
+                <h2 className="font-serif text-3xl sm:text-4xl text-[var(--text-main)] mb-6 tracking-[-0.02em]">
+                  The Silo <span className="italic text-[var(--red)]">Problem</span>,<br />
+                  The Monetra <span className="italic text-[var(--emerald)]">Moat</span>
+                </h2>
+                <div className="space-y-6">
+                  <div className="flex gap-4">
+                    <div className="w-1.5 h-full bg-[var(--red)] opacity-20 rounded-full shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold text-[var(--text-main)] mb-1">Traditional Apps</p>
+                      <p className="text-xs text-[var(--text-sec)] font-light leading-relaxed">
+                        Track expenses or show investments in disconnected silos. They tell you what you spent, not what you could have built.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="w-1.5 h-full bg-[var(--gold)] rounded-full shrink-0 shadow-[0_0_12px_var(--gold-glow)]" />
+                    <div>
+                      <p className="text-sm font-semibold text-[var(--text-main)] mb-1">The Monetra Bridge</p>
+                      <p className="text-xs text-[var(--text-sec)] font-light leading-relaxed">
+                        We build a <strong>Behavioral Bridge</strong>. We don&apos;t just say &quot;You spent too much&quot;. We show you exactly which mutual fund that surplus should go to, and what it becomes over 20 years.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/10 via-transparent to-[var(--blue)]/10 blur-3xl opacity-50" />
+                <div className="glass-card p-8 relative overflow-hidden">
+                  <div className="flex items-center gap-3 mb-6">
+                    <Shield className="w-5 h-5 text-[var(--gold)]" />
+                    <span className="text-[11px] font-bold tracking-widest uppercase text-[var(--text-muted)]">Data Ethics & Security</span>
+                  </div>
+                  <ul className="space-y-4">
+                    {[
+                      "GDPR & DPDP Compliant full encryption",
+                      "One-Click CSV Export for all your financial data",
+                      "Permanent Account Deletion (Right to be Forgotten)",
+                      "No third-party data selling — ever."
+                    ].map((item, i) => (
+                      <li key={i} className="flex gap-3 text-xs text-[var(--text-sec)] font-light">
+                        <Check className="w-4 h-4 text-[var(--emerald)] shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </Section>
+        </div>
+      </section>
 
       {/* ── Features ── */}
       <section id="features" className="relative z-10 py-24 px-6">

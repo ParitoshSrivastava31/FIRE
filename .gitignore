@@ -34,3 +34,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ── Mobile (Capacitor) ──────────────
+# NEVER commit the release keystore — losing it = losing your Play Store listing
+*.keystore
+*.jks
+
+# Android build outputs (generated)
+android/app/build/
+android/.gradle/
+android/build/
+
+# Android local properties (machine-specific)
+android/local.properties

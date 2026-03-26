@@ -87,6 +87,14 @@
 @layer base {
   * {
     border-color: var(--border);
+    /* Remove tap highlight flash on all tappable elements (mobile critical) */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    /* Prevent font size adjustment when rotating device */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
@@ -97,6 +105,8 @@
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Prevent overscroll bounce showing white gap between content and nav */
+    overscroll-behavior: none;
   }
 
   /* Ultra-subtle noise texture — cinematic grain */
@@ -366,3 +376,53 @@
 .delay-300 { animation-delay: 300ms; }
 .delay-400 { animation-delay: 400ms; }
 .delay-500 { animation-delay: 500ms; }
+
+/* ═══════════════════════════════════
+   Mobile — Safe Area Utilities
+   ═══════════════════════════════════ */
+
+/* Bottom nav clearance — main content never hides behind nav */
+.pb-nav {
+  padding-bottom: calc(72px + env(safe-area-inset-bottom));
+}
+
+/* Smooth momentum scrolling on iOS/Android WebView */
+.scroll-touch {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
+
+/* ═══════════════════════════════════
+   Bottom Sheet — Slide Up Animation
+   ═══════════════════════════════════ */
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ═══════════════════════════════════
+   Onboarding — Micro-screen transitions
+   ═══════════════════════════════════ */
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(32px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-32px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-slideInLeft {
+  animation: slideInLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}

@@ -50,11 +50,11 @@ export async function runRuleEngineForUser(userId: string): Promise<RuleEvent[]>
     .from('users')
     .select(`
       id, risk_profile, monthly_income,
-      goals (id, name, target_amount, current_amount, deadline_date, priority),
+      goals (id, name, target_amount, current_amount, target_date, priority),
       portfolio_holdings (
-        id, asset_type, asset_symbol, asset_name,
+        id, asset_type, symbol, name,
         quantity, avg_buy_price, current_price, current_value,
-        invested_amount, allocation_percent, target_allocation_percent
+        invested_amount
       )
     `)
     .eq('id', userId)
@@ -62,11 +62,13 @@ export async function runRuleEngineForUser(userId: string): Promise<RuleEvent[]>
 
   if (!user) return []
 
-  const holdings = user.portfolio_holdings || []
-  const goals = user.goals || []
+  const holdings: any[] = user.portfolio_holdings || []
+  const goals: any[] = user.goals || []
+
+  const totalPortfolioValue = holdings.reduce((sum: number, h: any) => sum + (h.current_value || 0), 0)
 
   // Fetch latest market data for all held symbols
-  const symbols = holdings.map((h: any) => h.asset_symbol).filter(Boolean)
+  const symbols = holdings.map((h: any) => h.symbol).filter(Boolean)
   const { data: marketData } = await supabase
     .from('market_prices')
     .select('symbol, current_price, previous_close, day_change_percent, price_30d_ago, price_90d_ago')
@@ -85,7 +87,7 @@ export async function runRuleEngineForUser(userId: string): Promise<RuleEvent[]>
   // RULE 1: Significant single-day stock drop (threshold: -5%)
   // ─────────────────────────────────────────────────────────────────
   for (const holding of holdings.filter((h: any) => h.asset_type === 'stock')) {
-    const price = priceMap[holding.asset_symbol]
+    const price = priceMap[holding.symbol]
     if (!price) continue
     if (price.day_change_percent <= -5) {
       const changeINR = (price.day_change_percent / 100) * holding.current_value
@@ -94,14 +96,14 @@ export async function runRuleEngineForUser(userId: string): Promise<RuleEvent[]>
         event_type: 'stock_significant_drop',
         severity: price.day_change_percent <= -8 ? 'critical' : 'warning',
         context: {
-          asset_name: holding.asset_name,
-          asset_symbol: holding.asset_symbol,
+          asset_name: holding.name,
+          asset_symbol: holding.symbol,
           current_value: holding.current_value,
           change_percent: price.day_change_percent,
           change_inr: changeINR,
           holding_quantity: holding.quantity,
           avg_buy_price: holding.avg_buy_price,
-          user_allocation_current: holding.allocation_percent,
+          user_allocation_current: totalPortfolioValue > 0 ? (holding.current_value / totalPortfolioValue) * 100 : 0,
         }
       })
     }
@@ -112,7 +114,7 @@ export async function runRuleEngineForUser(userId: string): Promise<RuleEvent[]>
   // Prompt user to consider partial profit booking
   // ─────────────────────────────────────────────────────────────────
   for (const holding of holdings.filter((h: any) => h.asset_type === 'stock')) {
-    const price = priceMap[holding.asset_symbol]
+    const price = priceMap[holding.symbol]
     if (!price) continue
     if (price.day_change_percent >= 7) {
       events.push({
@@ -120,8 +122,8 @@ export async function runRuleEngineForUser(userId: string): Promise<RuleEvent[]>
         event_type: 'stock_significant_gain',
         severity: 'info',
         context: {
-          asset_name: holding.asset_name,
-          asset_symbol: holding.asset_symbol,
+          asset_name: holding.name,
+          asset_symbol: holding.symbol,
           current_value: holding.current_value,
           change_percent: price.day_change_percent,
           change_inr: (price.day_change_percent / 100) * holding.current_value,
@@ -137,7 +139,7 @@ export async function runRuleEngineForUser(userId: string): Promise<RuleEvent[]>
   // Only fire once per 30 days per fund to avoid alert fatigue
   // ─────────────────────────────────────────────────────────────────
   for (const holding of holdings.filter((h: any) => h.asset_type === 'mutual_fund')) {
-    const price = priceMap[holding.asset_symbol]
+    const price = priceMap[holding.symbol]
     if (!price || !price.price_90d_ago || !nifty?.price_90d_ago) continue
 
     const mfReturn90d = ((price.current_price - price.price_90d_ago) / price.price_90d_ago) * 100
@@ -151,7 +153,7 @@ export async function runRuleEngineForUser(userId: string): Promise<RuleEvent[]>
         .select('id', { count: 'exact', head: true })
         .eq('user_id', userId)
         .eq('event_type', 'mf_underperforming_benchmark')
-        .contains('context', { asset_symbol: holding.asset_symbol })
+        .contains('context', { asset_symbol: holding.symbol })
         .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
 
       if (!count || count === 0) {
@@ -160,8 +162,8 @@ export async function runRuleEngineForUser(userId: string): Promise<RuleEvent[]>
           event_type: 'mf_underperforming_benchmark',
           severity: underperformance >= 6 ? 'critical' : 'warning',
           context: {
-            asset_name: holding.asset_name,
-            asset_symbol: holding.asset_symbol,
+            asset_name: holding.name,
+            asset_symbol: holding.symbol,
             current_value: holding.current_value,
             benchmark_delta: -underperformance,
             days_observed: 90,
@@ -177,8 +179,6 @@ export async function runRuleEngineForUser(userId: string): Promise<RuleEvent[]>
   // RULE 4: Portfolio allocation drift
   // Fire when any asset class drifts more than 8% from target
   // ─────────────────────────────────────────────────────────────────
-  const totalPortfolioValue = holdings.reduce((sum: number, h: any) => sum + h.current_value, 0)
-
   // Group by asset type and compute current allocations
   const allocationByType: Record<string, number> = {}
   for (const holding of holdings) {
@@ -186,20 +186,22 @@ export async function runRuleEngineForUser(userId: string): Promise<RuleEvent[]>
   }
 
   // Fetch user's target allocations from their investment thesis
-  const { data: thesis } = await supabase
-    .from('investment_theses')
-    .select('target_equity_pct, target_debt_pct, target_gold_pct, target_cash_pct')
+  const { data: thesisRows } = await supabase
+    .from('ai_theses')
+    .select('recommendations')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(1)
-    .single()
+  
+  const thesis = thesisRows?.[0]
+  const recs = (thesis?.recommendations as any) || {}
 
   if (thesis && totalPortfolioValue > 0) {
     const targets: Record<string, number> = {
-      stock: thesis.target_equity_pct,
-      mutual_fund: thesis.target_equity_pct, // combined equity target
-      gold: thesis.target_gold_pct,
-      debt: thesis.target_debt_pct,
+      stock: recs.target_equity_pct || 0,
+      mutual_fund: recs.target_equity_pct || 0, // combined equity target
+      gold: recs.target_gold_pct || 0,
+      debt: recs.target_debt_pct || 0,
     }
 
     for (const [assetType, targetPct] of Object.entries(targets)) {
@@ -229,17 +231,18 @@ export async function runRuleEngineForUser(userId: string): Promise<RuleEvent[]>
   for (const holding of holdings.filter((h: any) => h.asset_type === 'stock')) {
     const unrealisedLossPct = ((holding.current_price - holding.avg_buy_price) / holding.avg_buy_price) * 100
     if (unrealisedLossPct <= -10) {
-      const { data: oldestTx } = await supabase
-        .from('transactions')
+      const { data: oldestTxData, error } = await supabase
+        .from('transactions' as any)
         .select('transaction_date')
         .eq('user_id', userId)
-        .eq('asset_symbol', holding.asset_symbol)
+        .eq('asset_symbol', holding.symbol)
         .eq('transaction_type', 'buy')
         .order('transaction_date', { ascending: true })
         .limit(1)
-        .single()
+        .maybeSingle()
 
-      if (oldestTx) {
+      const oldestTx = oldestTxData as any;
+      if (oldestTx && !error) {
         const holdingDays = Math.floor(
           (Date.now() - new Date(oldestTx.transaction_date).getTime()) / (1000 * 60 * 60 * 24)
         )
@@ -249,8 +252,8 @@ export async function runRuleEngineForUser(userId: string): Promise<RuleEvent[]>
             event_type: 'tax_loss_harvesting_opportunity',
             severity: 'info',
             context: {
-              asset_name: holding.asset_name,
-              asset_symbol: holding.asset_symbol,
+              asset_name: holding.name,
+              asset_symbol: holding.symbol,
               current_value: holding.current_value,
               change_percent: unrealisedLossPct,
               change_inr: (unrealisedLossPct / 100) * holding.invested_amount,
@@ -268,7 +271,7 @@ export async function runRuleEngineForUser(userId: string): Promise<RuleEvent[]>
   // ─────────────────────────────────────────────────────────────────
   for (const goal of goals) {
     const monthsRemaining = Math.floor(
-      (new Date(goal.deadline_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24 * 30)
+      (new Date(goal.target_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24 * 30)
     )
     if (monthsRemaining > 0 && monthsRemaining <= 36) {
       const progressPct = (goal.current_amount / goal.target_amount) * 100

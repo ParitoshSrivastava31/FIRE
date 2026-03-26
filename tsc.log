@@ -1,0 +1,33 @@
+﻿src/app/(dashboard)/planner/page.tsx(171,26): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'SetStateAction<string>'.
+  Type 'null' is not assignable to type 'SetStateAction<string>'.
+src/app/(dashboard)/planner/page.tsx(172,23): error TS2345: Argument of type 'boolean | null' is not assignable to parameter of type 'SetStateAction<boolean>'.
+  Type 'null' is not assignable to type 'SetStateAction<boolean>'.
+src/app/(dashboard)/planner/page.tsx(177,41): error TS2339: Property 'monthlyInvestment' does not exist on type 'string | number | true | { [key: string]: Json | undefined; } | Json[]'.
+  Property 'monthlyInvestment' does not exist on type 'string'.
+src/app/(dashboard)/planner/page.tsx(177,109): error TS2339: Property 'monthlyInvestment' does not exist on type 'string | number | true | { [key: string]: Json | undefined; } | Json[]'.
+  Property 'monthlyInvestment' does not exist on type 'string'.
+src/app/(dashboard)/planner/page.tsx(178,41): error TS2339: Property 'projectionYears' does not exist on type 'string | number | true | { [key: string]: Json | undefined; } | Json[]'.
+  Property 'projectionYears' does not exist on type 'string'.
+src/app/(dashboard)/planner/page.tsx(178,105): error TS2339: Property 'projectionYears' does not exist on type 'string | number | true | { [key: string]: Json | undefined; } | Json[]'.
+  Property 'projectionYears' does not exist on type 'string'.
+src/app/api/ai/audit/route.ts(27,15): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(relation: "pending_events" | "users" | "ai_insights" | "ai_theses" | "ai_usage_log" | "alerts" | "batch_jobs" | "expenses" | "goals" | "market_prices" | "portfolio_holdings" | "real_estate_data" | "sip_plans" | "sip_schedules"): PostgrestQueryBuilder<...>', gave the following error.
+    Argument of type '"transactions"' is not assignable to parameter of type '"pending_events" | "users" | "ai_insights" | "ai_theses" | "ai_usage_log" | "alerts" | "batch_jobs" | "expenses" | "goals" | "market_prices" | "portfolio_holdings" | "real_estate_data" | "sip_plans" | "sip_schedules"'.
+  Overload 2 of 2, '(relation: never): PostgrestQueryBuilder<{ PostgrestVersion: "14.4"; }, { Tables: { ai_insights: { Row: { cache_read_tokens: number | null; content: string; created_at: string | null; event_id: string | null; ... 8 more ...; via_batch: boolean | null; }; Insert: { ...; }; Update: { ...; }; Relationships: [...]; }; ... 12 more ...; users: { ...; }; }; Views: {}; Functions: {}; Enums: {}; CompositeTypes: {}; }, never, never, never>', gave the following error.
+    Argument of type '"transactions"' is not assignable to parameter of type 'never'.
+src/app/api/ai/audit/route.ts(36,26): error TS2345: Argument of type '(e: { category: string; amount: number; }) => void' is not assignable to parameter of type '(value: SelectQueryError<"column 'category' does not exist on 'pending_events'."> | SelectQueryError<"column 'category' does not exist on 'users'."> | ... 11 more ... | SelectQueryError<...>, index: number, array: (SelectQueryError<...> | ... 12 more ... | SelectQueryError<...>)[]) => void'.
+  Types of parameters 'e' and 'value' are incompatible.
+    Type 'SelectQueryError<"column 'category' does not exist on 'pending_events'."> | SelectQueryError<"column 'category' does not exist on 'users'."> | ... 11 more ... | SelectQueryError<...>' is not assignable to type '{ category: string; amount: number; }'.
+      Type '{ error: true; } & String' is missing the following properties from type '{ category: string; amount: number; }': category, amount
+src/app/api/cron/alerts/route.ts(44,17): error TS2339: Property 'id' does not exist on type 'SelectQueryError<"column 'email' does not exist on 'users'.">'.
+src/app/api/cron/alerts/route.ts(51,29): error TS2339: Property 'id' does not exist on type 'SelectQueryError<"column 'email' does not exist on 'users'.">'.
+src/app/api/cron/alerts/route.ts(68,63): error TS2339: Property 'risk_profile' does not exist on type 'SelectQueryError<"column 'email' does not exist on 'users'.">'.
+src/app/api/cron/alerts/route.ts(72,153): error TS2339: Property 'risk_profile' does not exist on type 'SelectQueryError<"column 'email' does not exist on 'users'.">'.
+src/app/api/cron/alerts/route.ts(75,29): error TS2339: Property 'id' does not exist on type 'SelectQueryError<"column 'email' does not exist on 'users'.">'.
+src/app/api/cron/alerts/route.ts(90,29): error TS2339: Property 'id' does not exist on type 'SelectQueryError<"column 'email' does not exist on 'users'.">'.
+src/app/api/cron/alerts/route.ts(107,29): error TS2339: Property 'id' does not exist on type 'SelectQueryError<"column 'email' does not exist on 'users'.">'.
+src/app/api/cron/alerts/route.ts(128,39): error TS2339: Property 'email' does not exist on type 'SelectQueryError<"column 'email' does not exist on 'users'.">'.
+src/app/api/cron/batch-results/route.ts(77,21): error TS2339: Property 'email' does not exist on type 'SelectQueryError<"column 'email' does not exist on 'users'.">'.
+src/app/api/cron/batch-results/route.ts(79,24): error TS2339: Property 'email' does not exist on type 'SelectQueryError<"column 'email' does not exist on 'users'.">'.
+src/app/api/cron/batch-results/route.ts(80,26): error TS2339: Property 'full_name' does not exist on type 'SelectQueryError<"column 'email' does not exist on 'users'.">'.
+src/lib/ai/budget-manager.ts(31,23): error TS2339: Property 'subscription_tier' does not exist on type 'SelectQueryError<"column 'subscription_tier' does not exist on 'users'.">'.

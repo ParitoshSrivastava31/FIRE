@@ -14,7 +14,6 @@ import {
   Map,
   Target,
   Zap,
-  Menu,
   X,
   MessageSquare,
   Send,
@@ -23,7 +22,6 @@ import {
 import { AuthGuard } from '@/components/auth/auth-guard';
 import { OfflineBanner } from '@/components/mobile/offline-banner';
 import { haptic } from '@/lib/native/haptics';
-import { Capacitor } from '@capacitor/core';
 
 // ── Desktop sidebar navigation ──────────────────────────────────────────────
 const SIDEBAR_ITEMS = [
@@ -58,7 +56,6 @@ const MORE_ITEMS = [
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMoreSheetOpen, setIsMoreSheetOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [feedbackText, setFeedbackText] = useState('');
@@ -66,14 +63,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [feedbackSuccess, setFeedbackSuccess] = useState(false);
 
   useEffect(() => {
-    setIsMobileMenuOpen(false);
     setIsMoreSheetOpen(false);
   }, [pathname]);
 
   useEffect(() => {
-    document.body.style.overflow = isMobileMenuOpen || isMoreSheetOpen ? 'hidden' : '';
+    document.body.style.overflow = isMoreSheetOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
-  }, [isMobileMenuOpen, isMoreSheetOpen]);
+  }, [isMoreSheetOpen]);
+
+  // Prefetch all bottom nav destinations on mount for instant tab switching
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    BOTTOM_NAV.forEach(item => {
+      if (item.id !== 'more') router.prefetch(item.href);
+    });
+    MORE_ITEMS.forEach(item => router.prefetch(item.href));
+  }, []);
 
   const handleBottomNav = async (href: string, id: string) => {
     await haptic.light();
@@ -119,14 +124,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="orb bg-[var(--blue)] w-[300px] h-[300px] bottom-[5%] left-[10%] animate-drift" style={{ animationDelay: '-10s', animationDuration: '30s', opacity: 0.06 }} />
         </div>
 
-        {/* ── Mobile sidebar backdrop ── */}
-        <div
-          className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-40 md:hidden transition-all duration-300 ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-
         {/* ── Desktop Sidebar ── */}
-        <aside className={`fixed md:relative inset-y-0 left-0 z-50 w-[260px] flex flex-col shrink-0 transform transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] md:transform-none ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+        <aside className="hidden md:flex relative inset-y-0 left-0 z-50 w-[260px] flex-col shrink-0">
           <div className="absolute inset-0 bg-[var(--surface-raised)] backdrop-blur-2xl border-r border-[var(--border)]" />
           <div className="relative z-10 flex flex-col h-full">
             {/* Logo */}
@@ -137,9 +136,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
                 <span className="font-serif text-lg tracking-tight text-[var(--text-main)]">Monetra</span>
               </Link>
-              <button className="md:hidden p-1 text-[var(--text-muted)] hover:text-[var(--text-main)] rounded-md" onClick={() => setIsMobileMenuOpen(false)}>
-                <X size={18} />
-              </button>
             </div>
 
             <div className="px-5 pt-2 pb-1">
@@ -183,11 +179,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* ── Main Content ── */}
         <main className="flex-1 flex flex-col h-screen overflow-hidden relative z-10 w-full">
           {/* Top Header */}
-          <header className="h-[56px] md:h-[60px] glass-nav flex items-center justify-between px-4 md:px-6 shrink-0 relative z-30" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+          <header
+            className="glass-nav flex items-center justify-between px-4 md:px-6 shrink-0 relative z-30"
+            style={{
+              paddingTop: 'calc(env(safe-area-inset-top) + 8px)',
+              paddingBottom: '8px',
+              minHeight: '56px',
+            }}
+          >
             <div className="flex items-center gap-3">
-              <button className="md:hidden p-1.5 -ml-1 text-[var(--text-muted)] hover:text-[var(--text-main)] rounded-lg hover:bg-[var(--surface)] transition-all duration-300" onClick={() => setIsMobileMenuOpen(true)}>
-                <Menu size={20} />
-              </button>
               <div className="flex flex-col">
                 <h1 className="md:hidden font-serif text-lg text-[var(--gold)] leading-none">Monetra</h1>
                 <p className="hidden md:block text-sm font-medium text-[var(--text-main)]">Overview</p>
@@ -210,7 +210,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </header>
 
           {/* Scrollable Content — padded for bottom nav on mobile */}
-          <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 pb-[88px] md:pb-8 hide-scrollbar">
+          <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 pb-nav md:pb-8 hide-scrollbar scroll-touch">
             <div className="max-w-[1100px] mx-auto w-full animate-fadeUp">
               {children}
             </div>
@@ -218,8 +218,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           {/* ── Mobile Bottom Navigation ── */}
           <nav
-            className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex items-end justify-around px-2 pt-2 bg-white/90 border-t border-[var(--border)]"
+            className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex items-end justify-around px-2 pt-2 border-t border-[var(--border)] will-change-transform"
             style={{
+              background: 'color-mix(in srgb, var(--background) 92%, transparent)',
               backdropFilter: 'blur(24px) saturate(1.8)',
               WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
               paddingBottom: 'calc(env(safe-area-inset-bottom) + 8px)',
@@ -278,7 +279,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <>
             <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 md:hidden" onClick={() => setIsMoreSheetOpen(false)} />
             <div className="fixed bottom-0 left-0 right-0 z-[60] md:hidden animate-slideUp">
-              <div className="bg-white rounded-t-3xl border-t border-[var(--border)] shadow-2xl" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}>
+            <div
+              className="rounded-t-3xl border-t border-[var(--border)] shadow-2xl"
+              style={{
+                background: 'var(--surface-raised)',
+                paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)',
+              }}
+            >
                 {/* Handle */}
                 <div className="flex justify-center pt-3 pb-2">
                   <div className="w-10 h-1 rounded-full bg-[var(--border-light)]" />
@@ -316,7 +323,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* ── Feedback FAB ── */}
         <button
           onClick={() => { haptic.light(); setIsFeedbackOpen(true); }}
-          className="fixed bottom-24 md:bottom-8 right-4 md:right-8 z-50 w-12 h-12 rounded-full bg-[var(--card)] border border-[var(--border)] shadow-lg flex items-center justify-center text-[var(--gold)] hover:scale-110 hover:shadow-[0_0_15px_var(--gold-glow)] transition-all duration-300 group"
+          className="fixed bottom-[calc(88px+env(safe-area-inset-bottom))] md:bottom-8 right-4 md:right-8 z-50 w-12 h-12 rounded-full bg-[var(--card)] border border-[var(--border)] shadow-lg flex items-center justify-center text-[var(--gold)] hover:scale-110 hover:shadow-[0_0_15px_var(--gold-glow)] transition-all duration-300 group"
           aria-label="Send Feedback"
         >
           <MessageSquare size={20} />

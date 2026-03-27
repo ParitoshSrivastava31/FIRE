@@ -6,6 +6,20 @@ import { OnboardingProgress } from '@/components/onboarding/progress-bar';
 import { useOnboardingStore } from '@/store/useOnboardingStore';
 import { haptic } from '@/lib/native/haptics';
 
+// Map step numbers to their route pages
+const STEP_ROUTES: Record<number, string> = {
+  1: '/onboarding/step-1',
+  2: '/onboarding/step-1',
+  3: '/onboarding/step-1',
+  4: '/onboarding/step-1',
+  5: '/onboarding/step-2',
+  6: '/onboarding/step-2',
+  7: '/onboarding/step-3',
+  8: '/onboarding/step-3',
+  9: '/onboarding/step-4',
+  10: '/onboarding/step-4',
+};
+
 export default function OnboardingLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { step, prevStep } = useOnboardingStore();
@@ -14,8 +28,18 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
     await haptic.light();
     if (step <= 1) {
       router.push('/login');
-    } else {
-      prevStep();
+      return;
+    }
+
+    const prevStepNum = step - 1;
+    prevStep();
+
+    // Navigate to the correct route if the previous step is on a different page
+    const currentRoute = STEP_ROUTES[step];
+    const prevRoute = STEP_ROUTES[prevStepNum];
+
+    if (prevRoute && prevRoute !== currentRoute) {
+      router.push(prevRoute);
     }
   };
 
@@ -39,7 +63,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
 
       {/* Main content area */}
       <div
-        className="flex-1 overflow-y-auto hide-scrollbar"
+        className="flex-1 overflow-y-auto hide-scrollbar scroll-touch"
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}
       >
         {children}

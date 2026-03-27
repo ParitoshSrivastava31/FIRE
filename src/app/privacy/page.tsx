@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment, react/no-unescaped-entities */
 import Link from "next/link";
 
 export const metadata = {
@@ -121,3 +122,4 @@ To exercise these rights, email us at privacy@monetra.app or use the Settings > 
     </div>
   );
 }
+

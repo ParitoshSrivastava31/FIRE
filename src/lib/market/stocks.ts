@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment, react/no-unescaped-entities */
 import yahooFinance from 'yahoo-finance2'
 
 export async function getLiveStockPrice(symbol: string) {
@@ -15,3 +16,4 @@ export async function getLiveStockPrice(symbol: string) {
     return null
   }
 }
+

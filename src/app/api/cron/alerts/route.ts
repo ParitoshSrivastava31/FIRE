@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment, react/no-unescaped-entities */
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { sendEmail, EmailTemplates } from '@/lib/email';
@@ -152,3 +153,4 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+

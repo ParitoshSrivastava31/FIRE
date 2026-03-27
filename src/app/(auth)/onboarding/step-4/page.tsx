@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useOnboardingStore } from '@/store/useOnboardingStore';
 import { haptic } from '@/lib/native/haptics';
-import { ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Sparkles, CheckCircle2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 const RISK_QUESTIONS = [
@@ -70,7 +70,7 @@ const RISK_LABELS = {
 export default function OnboardingStep4() {
   const router = useRouter();
   const {
-    step, riskAnswers, riskProfile, fullName, monthlyIncome, expenses,
+    step, riskProfile, fullName, monthlyIncome, expenses,
     selectedGoalTypes, addRiskAnswer, setStep, nextStep
   } = useOnboardingStore();
 
@@ -78,6 +78,7 @@ export default function OnboardingStep4() {
   const [isSaving, setIsSaving] = useState(false);
   const supabase = createClient();
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (step < 9) setStep(9);
   }, []);

@@ -25,8 +25,10 @@ export default function OnboardingStep1() {
   const [localName, setLocalName] = useState(fullName);
   const [localCity, setLocalCity] = useState(city);
   const [direction, setDirection] = useState<'forward' | 'back'>('forward');
+  const [search, setSearch] = useState('');
 
   // On mount, go to the correct sub-screen based on store step
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (step < 1) setStep(1);
     if (step > 4) router.push('/onboarding/step-2');
@@ -107,7 +109,6 @@ export default function OnboardingStep1() {
   // ── Screen 3: City ──────────────────────────────────────────────────────────
   if (step === 3) {
     const CITIES = ['Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Chennai', 'Pune', 'Kolkata', 'Ahmedabad', 'Surat', 'Jaipur', 'Lucknow', 'Chandigarh', 'Indore', 'Bhopal', 'Nagpur', 'Noida', 'Gurgaon', 'Kochi', 'Coimbatore', 'Other'];
-    const [search, setSearch] = useState('');
     const filtered = CITIES.filter(c => c.toLowerCase().includes(search.toLowerCase()));
 
     return (

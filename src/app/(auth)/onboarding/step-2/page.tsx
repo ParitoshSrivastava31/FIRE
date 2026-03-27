@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useOnboardingStore } from '@/store/useOnboardingStore';
 import { haptic } from '@/lib/native/haptics';
-import { ArrowRight, IndianRupee, Minus, Plus } from 'lucide-react';
+import { ArrowRight, IndianRupee } from 'lucide-react';
 
 function formatCurrency(val: string): string {
   const n = parseInt(val.replace(/,/g, ''), 10);
@@ -15,12 +15,29 @@ function formatCurrency(val: string): string {
 // Step-2 handles micro-screens 5–6: Income & Expenses
 export default function OnboardingStep2() {
   const router = useRouter();
-  const { step, monthlyIncome, expenses, fullName, setField, nextStep, setStep } = useOnboardingStore();
+  const { step, monthlyIncome, expenses, setField, nextStep, setStep } = useOnboardingStore();
 
+  // All hooks must be called unconditionally at the top level
+  const [rawInput, setRawInput] = useState(monthlyIncome.replace(/,/g, ''));
+  const [localExpenses, setLocalExpenses] = useState(
+    expenses.map(e => ({ ...e, amount: e.amount || '' }))
+  );
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (step < 5) setStep(5);
     if (step > 6) router.push('/onboarding/step-3');
   }, []);
+
+  // Sync rawInput when monthlyIncome changes externally
+  useEffect(() => {
+    setRawInput(monthlyIncome.replace(/,/g, ''));
+  }, [monthlyIncome]);
+
+  // Sync localExpenses when expenses change externally
+  useEffect(() => {
+    setLocalExpenses(expenses.map(e => ({ ...e, amount: e.amount || '' })));
+  }, [expenses]);
 
   const advance = async () => {
     await haptic.medium();
@@ -30,8 +47,6 @@ export default function OnboardingStep2() {
 
   // ── Screen 5: Monthly Income ────────────────────────────────────────────────
   if (step === 5) {
-    const [rawInput, setRawInput] = useState(monthlyIncome.replace(/,/g, ''));
-
     const handleChange = (val: string) => {
       const digits = val.replace(/\D/g, '');
       setRawInput(digits);
@@ -85,11 +100,6 @@ export default function OnboardingStep2() {
   // ── Screen 6: Expenses ──────────────────────────────────────────────────────
   if (step === 6) {
     const income = parseInt(monthlyIncome) || 50000;
-
-    const [localExpenses, setLocalExpenses] = useState(
-      expenses.map(e => ({ ...e, amount: e.amount || '' }))
-    );
-
     const totalExpenses = localExpenses.reduce((sum, e) => sum + (parseInt(e.amount) || 0), 0);
     const surplus = income - totalExpenses;
 

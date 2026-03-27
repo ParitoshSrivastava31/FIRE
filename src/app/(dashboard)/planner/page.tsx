@@ -11,9 +11,8 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from "recharts";
-import { Sparkles, RefreshCw, Bookmark, ChevronDown, ChevronUp } from "lucide-react";
+import { Sparkles, RefreshCw, Bookmark } from "lucide-react";
 
 // -------------------- Projection Math --------------------
 function buildProjectionData(monthlyInvestment: number, years: number) {

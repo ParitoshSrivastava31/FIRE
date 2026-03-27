@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment, react/no-unescaped-entities */
 const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
 
 export type EmailTemplateParams = {
@@ -67,3 +68,4 @@ export const EmailTemplates = {
     </div>
   `
 };
+

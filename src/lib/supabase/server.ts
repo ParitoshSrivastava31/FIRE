@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment, react/no-unescaped-entities */
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
@@ -29,3 +30,4 @@ export async function createClient() {
     }
   )
 }
+

@@ -1,6 +1,5 @@
 'use client';
 
-import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans, DM_Serif_Display, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { QueryProvider } from '@/providers/QueryProvider';

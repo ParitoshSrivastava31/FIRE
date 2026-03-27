@@ -95,6 +95,10 @@
     /* Prevent font size adjustment when rotating device */
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+    /* Native-like smooth scrolling */
+    scroll-behavior: smooth;
+    /* Faster taps — remove 300ms delay on mobile */
+    touch-action: manipulation;
   }
 
   body {
@@ -110,6 +114,7 @@
   }
 
   /* Ultra-subtle noise texture — cinematic grain */
+  /* z-index kept low (1) to prevent blocking touch events on Android WebView */
   body::before {
     content: '';
     position: fixed;
@@ -118,7 +123,7 @@
     height: 200%;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.025'/%3E%3C/svg%3E");
     pointer-events: none;
-    z-index: 100;
+    z-index: 1;
     opacity: 0.5;
     mix-blend-mode: overlay;
   }
@@ -390,6 +395,33 @@
 .scroll-touch {
   -webkit-overflow-scrolling: touch;
   overflow-y: auto;
+}
+
+/* ═══════════════════════════════════
+   Accessibility — Reduced Motion
+   ═══════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ═══════════════════════════════════
+   Mobile — will-change for perf
+   ═══════════════════════════════════ */
+
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
 }
 
 /* ═══════════════════════════════════

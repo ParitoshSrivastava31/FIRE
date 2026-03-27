@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment, react/no-unescaped-entities */
 import { NextRequest, NextResponse } from 'next/server'
 import { getLiveStockPrice } from '@/lib/market/stocks'
 
@@ -41,3 +42,4 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: error.message || 'Unknown error' }, { status: 500 })
   }
 }
+

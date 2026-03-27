@@ -4,7 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Sparkles, TrendingUp, Shield, Eye, EyeOff, ArrowRight, Check } from "lucide-react";
+import { Sparkles, Eye, EyeOff, ArrowRight, Check } from "lucide-react";
 
 const PERKS = [
   "14-day Pro trial — no card required",

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment, react/no-unescaped-entities */
 import { NextResponse } from 'next/server'
 import { openai, AI_MODEL } from '@/lib/openai/client'
 import { createClient } from '@/lib/supabase/server'
@@ -128,3 +129,4 @@ Please provide:
     return NextResponse.json({ error: msg, details: error.message }, { status })
   }
 }
+

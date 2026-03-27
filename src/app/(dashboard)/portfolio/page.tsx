@@ -15,7 +15,7 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts";
-import { TrendingUp, TrendingDown, Sparkles, Plus, BarChart2 } from "lucide-react";
+import { TrendingUp, TrendingDown, Sparkles, Plus } from "lucide-react";
 
 // --------- Types & Mock Data ---------
 type Holding = {
@@ -67,7 +67,7 @@ function formatINR(v: number) {
 export default function PortfolioPage() {
   const supabase = createClient();
   const [filter, setFilter] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<"pnl" | "name" | "value">("value");
+  const [sortBy] = useState<"pnl" | "name" | "value">("value");
 
   // DB Fetching
   const { data: dbHoldings, isLoading } = useQuery({
@@ -87,6 +87,7 @@ export default function PortfolioPage() {
       
       if (!data || data.length === 0) return [];
       
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return data.map((d: any) => ({
         id: d.id,
         name: d.name,

@@ -88,6 +88,13 @@ const config: Config = {
       transitionTimingFunction: {
         premium: "cubic-bezier(0.16, 1, 0.3, 1)",
       },
+      spacing: {
+        'safe-top': 'env(safe-area-inset-top)',
+        'safe-bottom': 'env(safe-area-inset-bottom)',
+        'safe-left': 'env(safe-area-inset-left)',
+        'safe-right': 'env(safe-area-inset-right)',
+        'nav': 'calc(88px + env(safe-area-inset-bottom))',
+      },
     },
   },
   plugins: [],

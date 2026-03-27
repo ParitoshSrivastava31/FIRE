@@ -21,16 +21,23 @@ const GOAL_OPTIONS = [
 export default function OnboardingStep3() {
   const router = useRouter();
   const {
-    step, selectedGoalTypes, goals, monthlyIncome, setField, nextStep, setStep
+    step, selectedGoalTypes, goals, setField, nextStep, setStep
   } = useOnboardingStore();
 
+  // All hooks called unconditionally at top level (React Rules of Hooks)
   const [localGoals, setLocalGoals] = useState(goals);
   const [currentGoalIndex, setCurrentGoalIndex] = useState(0);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (step < 7) setStep(7);
     if (step > 8) router.push('/onboarding/step-4');
   }, []);
+
+  // Sync localGoals when goals change externally
+  useEffect(() => {
+    setLocalGoals(goals);
+  }, [goals]);
 
   const toggleGoal = async (goalId: string) => {
     await haptic.light();
@@ -117,7 +124,7 @@ export default function OnboardingStep3() {
       if (idx >= 0) {
         updated[idx] = { ...updated[idx], [field]: value };
       } else {
-        updated.push({ id: currentGoal.id, name: currentGoal.label, targetAmount: '', targetYear: '', [field]: value } as any);
+        updated.push({ id: currentGoal.id, name: currentGoal.label, targetAmount: '', targetYear: '', [field]: value } as typeof updated[0]);
       }
       setLocalGoals(updated);
       setField('goals', updated);
